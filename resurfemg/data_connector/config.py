@@ -65,11 +65,29 @@ class Config:
 
     required_directories = ['root_data']
 
-    def __init__(self, location=None, verbose=False):
+    def __init__(self, location=None, verbose=False, force=False):
+        """
+        This function initializes the configuration file. If no location is
+        specified it will try to load the configuration file from the default
+        locations:
+        - ./config.json
+        - ~/.resurfemg/config.json
+        - /etc/resurfemg/config.json
+        - PROJECT_ROOT/config.json
+        -----------------------------------------------------------------------
+        :param location: The location of the configuration file.
+        :type location: str
+        :param verbose: A boolean to print the loaded configuration.
+        :type verbose: bool
+        :param force: A boolean to overwrite the configuration file.
+        :type force: bool
+        :raises ValueError: If the configuration file is not found.
+        """
         self._raw = None
         self._loaded = None
         self.example = 'config_example_resurfemg.json'
         self.repo_root = find_repo_root(self.example)
+        self.force = force
         self.created_config = False
         # In the ResurfEMG project, the test data is stored in ./test_data
         test_path = os.path.join(self.repo_root, 'test_data')
@@ -138,6 +156,7 @@ class Config:
     def create_config_from_example(
         self,
         location: str,
+        force=False,
     ):
         """
         This function creates a config file from an example file.
@@ -147,10 +166,15 @@ class Config:
         :raises ValueError: If the example file is not found.
         """
         config_path = location.replace(self.example, 'config.json')
-        with open(location, 'r') as f:
-            example = json.load(f)
-        with open(config_path, 'w') as f:
-            json.dump(example, f, indent=4, sort_keys=True)
+        if os.path.isfile(config_path) and not force:
+            raise ValueError(
+                f'Config file already exists at {config_path}.'
+                + ' Use `force=True` to overwrite.')
+        else:
+            with open(location, 'r') as f:
+                example = json.load(f)
+            with open(config_path, 'w') as f:
+                json.dump(example, f, indent=4, sort_keys=True)
 
     def load(self, location, verbose=False):
         """
@@ -179,9 +203,15 @@ class Config:
             except Exception as e:
                 logging.info('Failed to load %s: %s', _path, e)
         else:
-            if self.repo_root is not None:
+            if (self.repo_root is not None and os.path.isfile(
+                    os.path.join(self.repo_root, self.example))):
                 self.create_config_from_example(
-                    os.path.join(self.repo_root, self.example))
+                    os.path.join(self.repo_root, self.example),
+                    force=self.force,)
+                root_path = os.path.join(self.repo_root, 'not_pushed')
+                if not os.path.isdir(root_path):
+                    os.makedirs(root_path)
+                    print(f'Created root directory at:\n {root_path}\n')
                 with open(os.path.join(self.repo_root, 'config.json')) as f:
                     self._raw = json.load(f)
                 self.created_config = True
@@ -218,7 +248,7 @@ class Config:
                     self.default_layout[m].format(root))
 
         if self.created_config:
-            print(f'Created config at:\n {_path}\n')
+            print(f'Created config. See and edit it at:\n {_path}\n')
         elif verbose:
             print(f'Loaded config from:\n {_path}\n')
         if verbose or self.created_config:
@@ -257,7 +287,19 @@ class Config:
         :rtype: str
         """
         if value is None:
-            return self._loaded[directory]
+            if directory in self._loaded:
+                return self._loaded[directory]
+            else:
+                print(f"Directory `{directory}` not found in config. The "
+                      "following directories are configured:"
+                      )
+                print(79*'-')
+                print(f' {"Name": <15}\t{"Path": <50}')
+                print(79*'-')
+                print(f' {"root": <15}\t{self._loaded["root_data"]: <50}')
+                for key, value in self._loaded.items():
+                    if key != 'root_data':
+                        print(f' {key: <15}\t{value: <50}')
         return value
 
 
