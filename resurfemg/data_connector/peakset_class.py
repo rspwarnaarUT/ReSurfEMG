@@ -178,8 +178,7 @@ class PeaksSet:
         :returns: None
         :rtype: None
         """
-        valid_idxs = np.argwhere(self.peak_df['valid'])
-
+        valid_idxs = self.peak_df['valid'].to_numpy()
         self.peak_df = self.peak_df.loc[valid_idxs].reset_index(drop=True)
         self.quality_outcomes_df = \
             self.quality_outcomes_df.loc[valid_idxs].reset_index(drop=True)
