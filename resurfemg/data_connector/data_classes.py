@@ -28,7 +28,19 @@ from resurfemg.data_connector.peakset_class import PeaksSet
 
 class TimeSeries:
     """
-    Data class to store, process, and plot single channel time series data
+    Data class to store, process, and plot single channel time series data.
+    Defined properties:
+    - t_data: time axis data
+    - y_raw: raw signal data
+    - y_filt: filtered signal data (before ECG elimination)
+    - y_clean: cleaned signal data (after ECG elimination)
+    - y_env: envelope signal data
+    - y_env_ci: envelope signal confidence interval
+    - y_baseline: baseline signal data
+    - label: channel label
+    - y_units: channel signal units
+    - param: dictionary of channel parameters (fs, n_samp)
+    - peaks: dictionary of PeaksSet objects
     """
 
     def __init__(self, y_raw, t_data=None, fs=None, label=None, units=None):
@@ -83,9 +95,9 @@ class TimeSeries:
     def signal_type_data(self, signal_type=None):
         """
         Automatically select the most advanced data type eligible for a
-        subprocess ('env' {=envelope} > 'clean' > 'raw')
+        subprocess ('env' {=envelope} > 'clean' > 'filt' > 'raw')
         -----------------------------------------------------------------------
-        :param signal_type: one of 'env', 'clean', or 'raw'
+        :param signal_type: one of 'env', 'clean', 'filt', or 'raw'
         :type signal_type: str
 
         :returns y_data: data of the selected signal type
@@ -134,7 +146,8 @@ class TimeSeries:
     def get_ecg_peaks(self, ecg_raw=None, bp_filter=True, overwrite=False):
         """
         Detect ECG peaks in the provided signal. See preprocessing.ecg_removal
-        submodule.
+        submodule. ECG peaks are stored in the self.peaks dict under the key
+        'ecg'.
         -----------------------------------------------------------------------
         :param ecg_raw: ECG signal, if None, the raw signal is used
         :type ecg_raw: ~numpy.ndarray
@@ -175,6 +188,13 @@ class TimeSeries:
         """
         Eliminate ECG artifacts from the provided signal. See
         preprocessing.ecg_removal and pipelines.ecg_removal_gating submodules.
+        The cleaned signal is stored in self.y_clean.
+        When running gating on a EmgDataGroup and no ECG channel or ecg_raw is
+        provided, EmgDataGroup.ecg_idx is used to detect the QRS peak
+        locations. ecg_idx is auto-detected from the labels on EmgDataGroup
+        initialization, or can be set with the set_ecg_idx method. When no ECG
+        channel is provided, the raw signal of the current TimeSeries object is
+        used.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -201,7 +221,14 @@ class TimeSeries:
                           bp_filter=True, overwrite=False):
         """
         Eliminate ECG artifacts from the provided signal. See
-        preprocessing.wavelet_denoising submodules.
+        preprocessing.wavelet_denoising submodules. The cleaned signal is
+        stored in self.y_clean.
+        When running wavelet_denoising on a EmgDataGroup and no ECG channel or
+        ecg_raw is provided, EmgDataGroup.ecg_idx is used to detect the QRS
+        peak locations. ecg_idx is auto-detected from the labels on
+        EmgDataGroup initialization, or can be set with the set_ecg_idx method.
+        When no ECG channel is provided, the raw signal of the current
+        TimeSeries object is used.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -226,7 +253,8 @@ class TimeSeries:
                  ci_alpha=None):
         """
         Derive the moving envelope of the provided signal. See
-        preprocessing.envelope submodule.
+        preprocessing.envelope submodule. The envelope is stored in the
+        self.y_env attribute.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -257,7 +285,8 @@ class TimeSeries:
                  ma_window=None, perc_window=None):
         """
         Derive the moving baseline of the provided signal. See
-        postprocessing.baseline submodule.
+        postprocessing.baseline submodule. The baseline is stored in the
+        self.y_baseline attribute.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -285,7 +314,8 @@ class TimeSeries:
 
     def set_peaks(self, peak_idxs, signal, peak_set_name):
         """
-        Store a new PeaksSet object in the self.peaks dict
+        Store a new PeaksSet object in the self.peaks dict under the key
+        peak_set_name.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -304,7 +334,8 @@ class TimeSeries:
     ):
         """
         Find breath peaks in provided EMG envelope signal. See
-        postprocessing.event_detection submodule.
+        postprocessing.event_detection submodule. The peaks are stored in the
+        self.peaks dict under the key peak_set_name.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -340,7 +371,10 @@ class TimeSeries:
                       linked_peak_set_name=None):
         """
         Find the peaks in the PeaksSet with the peak_set_name closest in time
-        to the provided peak timings in t_reference_peaks
+        to the provided peak timings in t_reference_peaks. The results are
+        stored in a new PeaksSet object in the self.peaks dict under the key
+        linked_peak_set_name. If no linked_peak_set_name is provided, the key
+        is set to peak_set_name + '_linked'.
         -----------------------------------------------------------------------
         :param peak_set_name: PeaksSet name in self.peaks dict
         :type peak_set_name: str
@@ -438,20 +472,27 @@ class TimeSeries:
 
     def test_emg_quality(self, peak_set_name, cutoff=None, skip_tests=None,
                          parameter_names=None, verbose=True):
-        """See helper_functions.data_classes_quality_assessment submodule."""
+        """See helper_functions.data_classes_quality_assessment submodule. The
+        results are stored in the self.peaks[peak_set_name].quality_outcomes_df
+        and self.peaks[peak_set_name].quality_values_df DataFrames.
+        """
         data_qa.test_emg_quality(
             self, peak_set_name, cutoff, skip_tests, parameter_names, verbose)
 
     def test_pocc_quality(self, peak_set_name, cutoff=None, skip_tests=None,
                           parameter_names=None, verbose=True):
-        """See helper_functions.data_classes_quality_assessment submodule."""
+        """See helper_functions.data_classes_quality_assessment submodule. The
+        results are stored in the self.peaks[peak_set_name].quality_outcomes_df
+        and self.peaks[peak_set_name].quality_values_df DataFrames."""
         data_qa.test_pocc_quality(
             self, peak_set_name, cutoff, skip_tests, parameter_names, verbose)
 
     def test_linked_peak_sets(
             self, peak_set_name, linked_timeseries, linked_peak_set_name,
             parameter_names=None, cutoff=None, skip_tests=None, verbose=True):
-        """See helper_functions.data_classes_quality_assessment submodule."""
+        """See helper_functions.data_classes_quality_assessment submodule. The
+        results are stored in the self.peaks[peak_set_name].quality_outcomes_df
+        and self.peaks[peak_set_name].quality_values_df DataFrames."""
         data_qa.test_linked_peak_sets(
             self, peak_set_name, linked_timeseries, linked_peak_set_name,
             parameter_names, cutoff, skip_tests, verbose)
@@ -749,8 +790,12 @@ class TimeSeries:
 
 class TimeSeriesGroup:
     """
-    Data class to store, process, and plot time series data. Channels can be
-    accessed by index or by label."""
+    Data class to store, process, and plot time series data. TimeSeriesGroup is
+    a collection of TimeSeries objects. Enclosed TimeSeries objects can be
+    indexed by index number or channel label.
+    TimeSeries methods in TimeSeriesGroup._available_methods can be run on all
+    or a subset of the TimeSeries objects through the TimeSeriesGroup.run
+    method."""
 
     def __init__(self, y_raw, t_data=None, fs=None, labels=None, units=None):
         """
@@ -843,7 +888,14 @@ class TimeSeriesGroup:
 
     def run(self, method, channel_idxs=None, **kwargs):
         """Run a TimeSeries function on the provided channels in the group. The
-        function is run with the provided keyword arguments."""
+        function is run with the provided keyword arguments.
+        -----------------------------------------------------------------------
+        :param method: method to run on the TimeSeries objects
+        :type method: str
+        :param channel_idxs: channel indices to run the method on
+        :type channel_idxs: ~numpy.ndarray or int
+        :param kwargs: keyword arguments for the method
+        """
         if channel_idxs is None:
             channel_idxs = np.arange(self.param['n_channel'])
         elif isinstance(channel_idxs, int):
@@ -898,7 +950,17 @@ class TimeSeriesGroup:
 
 class EmgDataGroup(TimeSeriesGroup):
     """Child-class of TimeSeriesGroup to store and handle emg data in with the
-    additional methods filter_emg, gating, and wavelet_denoising."""
+    additional methods filter_emg, gating, and wavelet_denoising. Enclosed
+    TimeSeries objects can be indexed by index number or channel label.
+    TimeSeries methods in TimeSeriesGroup._available_methods can be run on all
+    or a subset of the TimeSeries objects through the TimeSeriesGroup.run
+    method.
+    When running ECG elimination methods (gating, wavelet_denoising) and no ECG
+    channel or ecg_raw is provided, EmgDataGroup.ecg_idx is used to detect the
+    QRS peak locations. ecg_idx is auto-detected from the labels on
+    EmgDataGroup initialization, or can be set with the set_ecg_idx method.
+    When no ECG channel is provided, the raw signal per TimeSeries object is
+    used."""
     def __init__(self, y_raw, t_data=None, fs=None, labels=None, units=None):
         super().__init__(
             y_raw, t_data=t_data, fs=fs, labels=labels, units=units)
@@ -934,7 +996,9 @@ class EmgDataGroup(TimeSeriesGroup):
 class VentilatorDataGroup(TimeSeriesGroup):
     """
     Child-class of TimeSeriesGroup to store and handle ventilator data in.
-    Default channels are 'Paw'/ 'Pvent', 'F', and 'Vvent'.
+    Default channels are 'Paw'/ 'Pvent', 'F', and 'Vvent', which are auto-
+    detected from the labels. The PEEP-level (VentilatorDataGroup.peep) is
+    auto-detected from the pressure channel when a pressure channel is set.
     """
     def __init__(self, y_raw, t_data=None, fs=None, labels=None, units=None):
         super().__init__(
