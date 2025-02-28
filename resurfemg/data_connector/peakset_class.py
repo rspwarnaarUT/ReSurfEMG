@@ -127,14 +127,16 @@ class PeaksSet:
             df_old = self.quality_values_df
             pre_existing_keys = list(
                 set(tests_df_new.keys()) & set(df_old.keys()))
-            pre_existing_keys.pop(pre_existing_keys.index('peak_idx'))
             df_old = df_old.drop(columns=pre_existing_keys)
-            tests_df_new = df_old.merge(
+            tests_df_merge = df_old.merge(
                 tests_df_new,
-                left_on='peak_idx',
-                right_on='peak_idx',
-                suffixes=(False, False))
-            self.quality_values_df = tests_df_new
+                left_index=True,
+                right_index=True)
+            if not self.quality_values_df['peak_idx'].equals(
+                    tests_df_merge['peak_idx']):
+                raise ValueError(
+                    "Mismatched 'peak_idx' between old and new dataframes.")
+            self.quality_values_df = tests_df_merge
         else:
             self.quality_values_df = tests_df_new
 
@@ -153,14 +155,16 @@ class PeaksSet:
             df_old = self.quality_outcomes_df
             pre_existing_keys = list(
                 set(tests_df_new.keys()) & set(df_old.keys()))
-            pre_existing_keys.pop(pre_existing_keys.index('peak_idx'))
             df_old = df_old.drop(columns=pre_existing_keys)
-            tests_df_new = df_old.merge(
+            tests_df_merge = df_old.merge(
                 tests_df_new,
-                left_on='peak_idx',
-                right_on='peak_idx',
-                suffixes=(False, False))
-            self.quality_outcomes_df = tests_df_new
+                left_index=True,
+                right_index=True)
+            if not self.quality_outcomes_df['peak_idx'].equals(
+                    tests_df_merge['peak_idx']):
+                raise ValueError(
+                    "Mismatched 'peak_idx' between old and new dataframes.")
+            self.quality_outcomes_df = tests_df_merge
         else:
             self.quality_outcomes_df = tests_df_new
 
