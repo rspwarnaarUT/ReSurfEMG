@@ -58,11 +58,11 @@ def load_file(file_path, verbose=True, **kwargs):
         'npy': load_npy,
     }
     file_ext = file_extension.lower()
-    if file_ext in loaders:
+    if verbose:
         print(f'Detected .{file_ext}')
+    if file_ext in loaders:
         data_df, metadata = loaders[file_ext](file_path, verbose)
     elif file_ext.startswith('adi'):
-        print(f'Detected .{file_ext}')
         data_df, metadata = load_adicht(
             file_path,
             record_idx=kwargs.get('record_idx', 0),
@@ -96,19 +96,15 @@ def load_file(file_path, verbose=True, **kwargs):
             raise TypeError(
                 'channel_idxs should be a list of valid channel indices (int)')
         data_df = data_df.iloc[:, channel_idxs]
-        metadata['selected_channels'] = channel_idxs
+        metadata['channel_idxs'] = channel_idxs
         if verbose:
             print('Selected channels:', channel_idxs)
 
     # 3. Convert remaining float channels to numpy array
-    float_data_df = data_df.select_dtypes(include=float)
-    np_float_data = np.rot90(float_data_df.to_numpy())
-    metadata['float_channels'] = float_data_df.columns.values
-    if verbose:
-        print('Loaded channels as np.array:',
-              metadata['float_channels'], '...')
+    np_data = np.flipud(np.rot90(data_df.to_numpy(), axes=(0, 1)))
+    metadata['labels'] = data_df.columns.values.tolist()
 
-    return np_float_data, data_df, metadata
+    return np_data, data_df, metadata
 
 
 def load_poly5(file_path, verbose=True):
@@ -129,7 +125,7 @@ def load_poly5(file_path, verbose=True):
     """
     if verbose:
         print('Loading .Poly5 ...')
-    poly5_data = Poly5Reader(file_path)
+    poly5_data = Poly5Reader(file_path, verbose=verbose)
     if verbose:
         print('Loaded .Poly5, extracting data ...')
     n_samples = poly5_data.num_samples
