@@ -1,0 +1,7 @@
+resurfemg.data\_connector.adicht\_reader module
+===============================================
+
+.. automodule:: resurfemg.data_connector.adicht_reader
+   :members:
+   :show-inheritance:
+   :undoc-members:

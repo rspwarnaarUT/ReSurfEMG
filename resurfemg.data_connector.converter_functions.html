@@ -110,6 +110,40 @@ preprocessing steps are already applied so pipelines may need adjusting.
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="resurfemg.data_connector.converter_functions.load_adicht">
+<span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.converter_functions.</span></span><span class="sig-name descname"><span class="pre">load_adicht</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.converter_functions.load_adicht" title="Link to this definition">¶</a></dt>
+<dd><section id="this-function-loads-a-adicht-file-and-returns-the-data-as-a-numpy-array">
+<h2>This function loads a .adicht file and returns the data as a numpy array.<a class="headerlink" href="#this-function-loads-a-adicht-file-and-returns-the-data-as-a-numpy-array" title="Link to this heading">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">param file_path<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path to the file to be loaded</p>
+</dd>
+<dt class="field-even">type file_path<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param verbose<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Print verbose output</p>
+</dd>
+<dt class="field-even">type verbose<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+<dt class="field-odd">returns data_df<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pandas DataFrame of the loaded data</p>
+</dd>
+<dt class="field-even">rtype data_df<span class="colon">:</span></dt>
+<dd class="field-even"><p>~pandas.DataFrame</p>
+</dd>
+<dt class="field-odd">returns metadata<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Metadata of the loaded data</p>
+</dd>
+<dt class="field-even">rtype metadata<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.data_connector.converter_functions.load_csv">
 <span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.converter_functions.</span></span><span class="sig-name descname"><span class="pre">load_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_col_reading</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.converter_functions.load_csv" title="Link to this definition">¶</a></dt>
 <dd><p>This function loads a .csv file and returns the data as a pandas
@@ -139,23 +173,20 @@ DataFrame. The function also returns metadata such as the loaded channels.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.data_connector.converter_functions.load_file">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.converter_functions.</span></span><span class="sig-name descname"><span class="pre">load_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_col_reading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.converter_functions.load_file" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.converter_functions.</span></span><span class="sig-name descname"><span class="pre">load_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.converter_functions.load_file" title="Link to this definition">¶</a></dt>
 <dd><p>This function loads a file from a given path and returns the data as a
 numpy array. The function can handle .poly5, .mat, .csv, and .npy files.
 The function can also rename channels and drop channels from the data.
 ————————————————————————–
 :param file_path: Path to the file to be loaded
 :type file_path: str
-:param key_name: Key name for .mat files
-:type key_name: str
-:param channels: List of channel names to rename the loaded channels
-:type channels: list
-:param drop_channels: List of channel names or indices to drop
-:type drop_channels: list
-:param force_col_reading: Force column reading for row based .csv files
-:type force_col_reading: bool
-:param verbose: Print verbose output
-:type verbose: bool</p>
+:param kwargs: Additional keyword arguments for specific file loaders:
+- key_name (str): Key name for loading .mat files.
+- force_col_reading (bool): If True, force reading columns for .csv files.
+Default is False.
+- record_idx (int): Record index for loading .adi* files. Default is 0.
+- channel_idxs (list): List of channel indices for loading .adi files.
+- labels (list): List of new channel names to rename the columns.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns np_float_data<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Numpy array of the loaded data</p>
@@ -350,6 +381,7 @@ other leads (leads 6-12). The expected organization returned is from leads
 <li><a class="reference internal" href="#resurfemg.data_connector.converter_functions.csv_from_jkmn_to_array"><code class="docutils literal notranslate"><span class="pre">csv_from_jkmn_to_array()</span></code></a></li>
 <li><a class="reference internal" href="#resurfemg.data_connector.converter_functions.dvrmn_csv_freq_find"><code class="docutils literal notranslate"><span class="pre">dvrmn_csv_freq_find()</span></code></a></li>
 <li><a class="reference internal" href="#resurfemg.data_connector.converter_functions.dvrmn_csv_to_array"><code class="docutils literal notranslate"><span class="pre">dvrmn_csv_to_array()</span></code></a></li>
+<li><a class="reference internal" href="#resurfemg.data_connector.converter_functions.load_adicht"><code class="docutils literal notranslate"><span class="pre">load_adicht()</span></code></a></li>
 <li><a class="reference internal" href="#resurfemg.data_connector.converter_functions.load_csv"><code class="docutils literal notranslate"><span class="pre">load_csv()</span></code></a></li>
 <li><a class="reference internal" href="#resurfemg.data_connector.converter_functions.load_file"><code class="docutils literal notranslate"><span class="pre">load_file()</span></code></a></li>
 <li><a class="reference internal" href="#resurfemg.data_connector.converter_functions.load_mat"><code class="docutils literal notranslate"><span class="pre">load_mat()</span></code></a></li>

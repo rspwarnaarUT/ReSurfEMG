@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>resurfemg.data_connector.adicht_reader module &#8212; resurfemg 1.0.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/documentation_options.js?v=1ed6394b"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="resurfemg.data_connector.config module" href="resurfemg.data_connector.config.html" />
+    <link rel="prev" title="resurfemg.data_connector package" href="resurfemg.data_connector.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="resurfemg.data_connector.config.html" title="resurfemg.data_connector.config module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="resurfemg.data_connector.html" title="resurfemg.data_connector package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">resurfemg 1.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >resurfemg</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="resurfemg.html" >resurfemg package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="resurfemg.data_connector.html" accesskey="U">resurfemg.data_connector package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">resurfemg.data_connector.adicht_reader module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-resurfemg.data_connector.adicht_reader">
+<span id="resurfemg-data-connector-adicht-reader-module"></span><h1>resurfemg.data_connector.adicht_reader module<a class="headerlink" href="#module-resurfemg.data_connector.adicht_reader" title="Link to this heading">¶</a></h1>
+<p>The class AdichtReader is designed to load EMG data from an ADInstruments
+device using the .adicht file format (Labchart) and prepares it for use in
+ReSurfEMG. The foundation of the AdichtReader class is the repository
+‘adinstruments_sdk_python’ by Jim Hokanson, available at:
+<a class="reference external" href="https://github.com/JimHokanson/adinstruments_sdk_python">https://github.com/JimHokanson/adinstruments_sdk_python</a></p>
+<p>An example of how to use this class is provided in the main block of this file.
+This example executes only if the script is run directly by the Python
+interpreter and not when imported as a module.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="resurfemg.data_connector.adicht_reader.AdichtReader">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.adicht_reader.</span></span><span class="sig-name descname"><span class="pre">AdichtReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.adicht_reader.AdichtReader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class for loading timeseries data from an ADInstruments devices using
+the .adicht/.adidat/.adibin file formats (LabChart, BIOPAC) and prepare it
+for use in ReSurfEMG.
+Based on the ‘adinstruments_sdk_python’ repository by Jim Hokanson,
+available at: <a class="reference external" href="https://github.com/JimHokanson/adinstruments_sdk_python">https://github.com/JimHokanson/adinstruments_sdk_python</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="resurfemg.data_connector.adicht_reader.AdichtReader.extract_data">
+<span class="sig-name descname"><span class="pre">extract_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.adicht_reader.AdichtReader.extract_data" title="Link to this definition">¶</a></dt>
+<dd><p>Extract channel data from specified channels and record. Optionally,
+resample specified channels to equalize sampling rates across channels.
+Resampling all channels to a different, not yet used, rate is not
+supported. There must be at least one channel that already has the
+target rate and is not specified in the resampling.
+———————————————————————–
+:param channel_idxs: List of channel indices.
+:type channel_idxs: list[int]
+:param record_idx: The record index to extract the data from.
+:type record_idx: int
+:param resample_channels: Resample specified channels to a new rate.
+:type resample_channels: {channel_idx: target_rate}
+Example: {1: 2000, 3: 2000} - Resample ch 1 and ch 3 to 2000 Hz
+:param kwargs: Additional arguments to specify the channel IDs or
+record IDs instead of indices.
+:return: A tuple containing:
+- A pandas DataFrame with the extracted and resampled data.
+- The sampling rate (in Hz) of the leading channel.
+:rtype: Tuple[pd.DataFrame, int]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="resurfemg.data_connector.adicht_reader.AdichtReader.generate_metadata">
+<span class="sig-name descname"><span class="pre">generate_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.adicht_reader.AdichtReader.generate_metadata" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts metadata on channels, samples, records, sampling rates, units,
+and time step and sets it in self.metadata and self.metadata_table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of metadata dicts per channel</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="resurfemg.data_connector.adicht_reader.AdichtReader.get_labels">
+<span class="sig-name descname"><span class="pre">get_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.adicht_reader.AdichtReader.get_labels" title="Link to this definition">¶</a></dt>
+<dd><section id="returns-a-list-of-channel-names-based-on-a-list-of-channel-indices">
+<h2>Returns a list of channel names based on a list of channel indices.<a class="headerlink" href="#returns-a-list-of-channel-names-based-on-a-list-of-channel-indices" title="Link to this heading">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">param channel_idxs<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of channel indices</p>
+</dd>
+<dt class="field-even">type channel_idxs<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[int]</p>
+</dd>
+<dt class="field-odd">param channel_ids<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of channel IDs to retrieve the labels for</p>
+</dd>
+<dt class="field-even">type channel_ids<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+<dt class="field-odd">return<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of channel names.</p>
+</dd>
+<dt class="field-even">rtype<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="resurfemg.data_connector.adicht_reader.AdichtReader.get_units">
+<span class="sig-name descname"><span class="pre">get_units</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.adicht_reader.AdichtReader.get_units" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a list of units based on a list of channel indices and a record
+id.
+———————————————————————–
+:param channel_idxs: List of channel indices
+:type channel_idxs: list[int]
+:param channel_ids: List of channel IDs to retrieve the labels for
+:type channel_ids: list
+Either channel_idxs or channel_ids must be set.
+:param record_idx: The record index to retrieve the units for
+:type record_idx: int
+:param record_id: The record ID to retrieve the units for
+:type record_id: int
+Either record_idx or record_id must be set.
+:return: List of units
+:rtype: list[str]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="resurfemg.data_connector.adicht_reader.AdichtReader.print_metadata">
+<span class="sig-name descname"><span class="pre">print_metadata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.adicht_reader.AdichtReader.print_metadata" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts and provides a tabular overview of the channels, samples,
+records, sampling rates, units, and time step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of metadata dicts per channel</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="resurfemg.data_connector.adicht_reader.AdichtReader.resample_channel">
+<span class="sig-name descname"><span class="pre">resample_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.adicht_reader.AdichtReader.resample_channel" title="Link to this definition">¶</a></dt>
+<dd><p>Resample the specified channel using a linear interpolation
+method and adds an additional row to the resampled DataFrame.
+———————————————————————–
+:param channel_idx: The channel index to be resampled.
+:type channel_idx: int
+:param record_idx: The record index to be resampled.
+:type record_idx: int
+Either record_idx or record_id must be set.
+:param fs_target: The target sampling rate in Hz.
+:type fs_target: int
+:param kwargs: Additional arguments to specify the channel ID or record
+ID instead of indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Record DataFrame with resampled data for the specified idx.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">resurfemg.data_connector.adicht_reader module</a><ul>
+<li><a class="reference internal" href="#resurfemg.data_connector.adicht_reader.AdichtReader"><code class="docutils literal notranslate"><span class="pre">AdichtReader</span></code></a><ul>
+<li><a class="reference internal" href="#resurfemg.data_connector.adicht_reader.AdichtReader.extract_data"><code class="docutils literal notranslate"><span class="pre">AdichtReader.extract_data()</span></code></a></li>
+<li><a class="reference internal" href="#resurfemg.data_connector.adicht_reader.AdichtReader.generate_metadata"><code class="docutils literal notranslate"><span class="pre">AdichtReader.generate_metadata()</span></code></a></li>
+<li><a class="reference internal" href="#resurfemg.data_connector.adicht_reader.AdichtReader.get_labels"><code class="docutils literal notranslate"><span class="pre">AdichtReader.get_labels()</span></code></a></li>
+<li><a class="reference internal" href="#resurfemg.data_connector.adicht_reader.AdichtReader.get_units"><code class="docutils literal notranslate"><span class="pre">AdichtReader.get_units()</span></code></a></li>
+<li><a class="reference internal" href="#resurfemg.data_connector.adicht_reader.AdichtReader.print_metadata"><code class="docutils literal notranslate"><span class="pre">AdichtReader.print_metadata()</span></code></a></li>
+<li><a class="reference internal" href="#resurfemg.data_connector.adicht_reader.AdichtReader.resample_channel"><code class="docutils literal notranslate"><span class="pre">AdichtReader.resample_channel()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="resurfemg.data_connector.html"
+                          title="previous chapter">resurfemg.data_connector package</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="resurfemg.data_connector.config.html"
+                          title="next chapter">resurfemg.data_connector.config module</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/resurfemg.data_connector.adicht_reader.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="resurfemg.data_connector.config.html" title="resurfemg.data_connector.config module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="resurfemg.data_connector.html" title="resurfemg.data_connector package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">resurfemg 1.0.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >resurfemg</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="resurfemg.html" >resurfemg package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="resurfemg.data_connector.html" >resurfemg.data_connector package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">resurfemg.data_connector.adicht_reader module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2022, e.oppersma@utwente.nl.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>
