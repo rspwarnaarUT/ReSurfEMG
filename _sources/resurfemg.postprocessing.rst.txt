@@ -17,5 +17,5 @@ Module contents
 
 .. automodule:: resurfemg.postprocessing
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
