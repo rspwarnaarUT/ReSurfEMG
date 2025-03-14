@@ -106,7 +106,7 @@ def load_file(file_path, verbose=True, **kwargs):
     np_data = np.flipud(np.rot90(data_df.to_numpy(), axes=(0, 1)))
 
     for item in ['fs', 'labels', 'units']:
-        if not item in metadata:
+        if item not in metadata:
             print(f'Warning: Metadata {item} not found. Set it manually.')
 
     return np_data, data_df, metadata
