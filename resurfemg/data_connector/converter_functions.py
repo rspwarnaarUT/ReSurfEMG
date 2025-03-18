@@ -23,13 +23,14 @@ def load_file(file_path, verbose=True, **kwargs):
     This function loads a file from a given path and returns the data as a
     numpy array. The function can handle .poly5, .mat, .csv, and .npy files.
     The function can also rename channels and drop channels from the data.
-    --------------------------------------------------------------------------
+
     :param file_path: Path to the file to be loaded
     :type file_path: str
     :param kwargs: Additional keyword arguments for specific file loaders:
+
     - key_name (str): Key name for loading .mat files.
     - force_col_reading (bool): If True, force reading columns for .csv files.
-    Default is False.
+        Default is False.
     - record_idx (int): Record index for loading .adi* files. Default is 0.
     - channel_idxs (list): List of channel indices for loading .adi files.
     - labels (list): List of new channel names to rename the columns.
@@ -117,7 +118,7 @@ def load_poly5(file_path, verbose=True):
     This function loads a .Poly5 file and returns the data as a pandas
     DataFrame. The function also returns metadata such as the sampling rate,
     loaded channels, and units.
-    --------------------------------------------------------------------------
+
     :param file_path: Path to the file to be loaded
     :type file_path: str
     :param verbose: Print verbose output
@@ -147,11 +148,10 @@ def load_poly5(file_path, verbose=True):
 
 
 def load_mat(file_path, key_name, verbose=True):
-    """
-    This function loads a .mat file and returns the data as a pandas
+    """This function loads a .mat file and returns the data as a pandas
     DataFrame. The function also returns metadata such as the sampling rate,
     loaded channels, and units.
-    --------------------------------------------------------------------------
+
     :param file_path: Path to the file to be loaded
     :type file_path: str
     :param key_name: Key name for .mat files
@@ -184,10 +184,9 @@ def load_mat(file_path, key_name, verbose=True):
 
 
 def load_csv(file_path, force_col_reading, verbose=True):
-    """
-    This function loads a .csv file and returns the data as a pandas
+    """This function loads a .csv file and returns the data as a pandas
     DataFrame. The function also returns metadata such as the loaded channels.
-    --------------------------------------------------------------------------
+
     :param file_path: Path to the file to be loaded
     :type file_path: str
     :param force_col_reading: Force column reading for row based .csv files
@@ -249,9 +248,8 @@ def load_csv(file_path, force_col_reading, verbose=True):
 
 
 def load_npy(file_path, verbose=True):
-    """
-    This function loads a .npy file and returns the data as a numpy array.
-    --------------------------------------------------------------------------
+    """This function loads a .npy file and returns the data as a numpy array.
+
     :param file_path: Path to the file to be loaded
     :type file_path: str
     :param verbose: Print verbose output
@@ -278,7 +276,7 @@ def load_adicht(file_path, record_idx, channel_idxs=None,
                 resample_channels=None, verbose=True):
     """
     This function loads a .adicht file and returns the data as a numpy array.
-    --------------------------------------------------------------------------
+
     :param file_path: Path to the file to be loaded
     :type file_path: str
     :param verbose: Print verbose output
@@ -334,7 +332,7 @@ def load_adicht(file_path, record_idx, channel_idxs=None,
 def poly5unpad(to_be_read):
     """Converts a Poly5 read into an array without padding. This padding is a
     quirk in the python Poly5 interface that pads with zeros on the end.
-    --------------------------------------------------------------------------
+
     :param to_be_read: Filename of python read Poly5
     :type to_be_read: str
 
@@ -353,7 +351,7 @@ def matlab5_jkmn_to_array(file_name):
     This file reads matlab5 files as produced in the Jonkman laboratory, on the
     Biopac system and returns arrays in the format and shape our the ReSurfEMG
     functions work on.
-    --------------------------------------------------------------------------
+
     :param file_name: Filename of matlab5 files
     :type file_name: str
 
@@ -375,7 +373,7 @@ def csv_from_jkmn_to_array(file_name):
     LEGACY FUNCTION
     This function takes a file from the Jonkman lab in csv format and changes
     it into the shape the library functions work on.
-    --------------------------------------------------------------------------
+
     :param file_name: Filename of csv files
     :type file_name: str
 
@@ -406,7 +404,7 @@ def poly_dvrman(file_name):
     # 9 RR: respiratory rate I guess (very unreliable)
     # 10 HR: heart rate
     # 11 Tach: number of breath (not reliable)
-    --------------------------------------------------------------------------
+
     :param file_name: Filename of Poly5 Duiverman type file
     :type file_name: str
 
@@ -425,7 +423,7 @@ def dvrmn_csv_to_array(file_name):
     Transform an already preprocessed csv from the Duiverman lab into an EMG
     in the format our other functions can work on it. Note that some
     preprocessing steps are already applied so pipelines may need adjusting.
-    --------------------------------------------------------------------------
+
     :param file_name: Filename of csv file
     :type file_name: str
 
@@ -445,7 +443,7 @@ def dvrmn_csv_freq_find(file_name):
     LEGACY FUNCTION
     Extract the sampling rate of a Duiverman type csv of EMG. Note
     this data may be resampled down by a factor of 10.
-    --------------------------------------------------------------------------
+
     :param file_name: Filename of csv file
     :type file_name: str
 
