@@ -41,8 +41,8 @@ class SphinxApiDoc(Command):
 
         sys.exit(main([
             '-o', src,
-            '-f',
-            os.path.join(project_dir, 'resurfemg'),
+            '-f', os.path.join(project_dir, 'resurfemg'),
+            '-d', '4',
             '--separate',
         ]))
 
