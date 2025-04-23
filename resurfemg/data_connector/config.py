@@ -96,7 +96,7 @@ class Config:
                 test_data_path = os.path.join(self.repo_root, 'test_data')
             else:
                 test_data_path = '{}/test_data'
-            
+
             self.default_locations = (
                 './config.json',
                 os.path.expanduser('~/.resurfemg/config.json'),
@@ -104,6 +104,7 @@ class Config:
                 os.path.join(self.repo_root, 'config.json'),
             )
         else:
+            test_data_path = '{}/test_data'
             self.default_locations = (
                 './config.json',
                 os.path.expanduser('~/.resurfemg/config.json'),
