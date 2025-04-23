@@ -301,6 +301,15 @@ class Config:
                     if key != 'root_data':
                         print(f' {key: <15}\t{value: <50}')
         return value
+    
+    def get_config(self):
+        """
+        This function returns the configuration file.
+        -----------------------------------------------------------------------
+        :return: The configuration file.
+        :rtype: dict
+        """
+        return self._loaded
 
 
 def hash_it_up_right_all(origin_directory, file_extension):
