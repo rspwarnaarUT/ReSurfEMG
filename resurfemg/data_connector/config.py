@@ -90,23 +90,24 @@ class Config:
         self.force = force
         self.created_config = False
         # In the ResurfEMG project, the test data is stored in ./test_data
-        test_path = os.path.join(self.repo_root, 'test_data')
-        if len(glob.glob(test_path)) == 1:
-            test_data_path = os.path.join(self.repo_root, 'test_data')
-        else:
-            test_data_path = '{}/test_data'
-        if self.repo_root is None:
+        if self.repo_root is not None:
+            test_path = os.path.join(self.repo_root, 'test_data')
+            if len(glob.glob(test_path)) == 1:
+                test_data_path = os.path.join(self.repo_root, 'test_data')
+            else:
+                test_data_path = '{}/test_data'
+            
             self.default_locations = (
                 './config.json',
                 os.path.expanduser('~/.resurfemg/config.json'),
                 '/etc/resurfemg/config.json',
+                os.path.join(self.repo_root, 'config.json'),
             )
         else:
             self.default_locations = (
                 './config.json',
                 os.path.expanduser('~/.resurfemg/config.json'),
                 '/etc/resurfemg/config.json',
-                os.path.join(self.repo_root, 'config.json'),
             )
         self.default_layout = {
                 'root_data': '{}/not_pushed',
