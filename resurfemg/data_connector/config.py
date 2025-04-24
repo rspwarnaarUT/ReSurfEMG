@@ -303,7 +303,7 @@ class Config:
                     if key != 'root_data':
                         print(f' {key: <15}\t{value: <50}')
         return value
-    
+
     def get_config(self):
         """
         This function returns the configuration file.
