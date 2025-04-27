@@ -7,7 +7,7 @@ automation.
 """
 
 import warnings
-
+from textwrap import wrap, dedent
 import numpy as np
 import scipy
 import matplotlib.pyplot as plt
@@ -118,11 +118,12 @@ class TimeSeries:
         if signal_type == 'env' and self.y_env is None:
             raise IndexError('No envelope defined for this signal.')
         if signal_type == 'clean' and self.y_clean is None:
-            warnings.warn(
-                "Warning: No clean data available, using raw data instead.")
+            warnings.warn("\n".join(wrap(dedent(
+                "Warning: No clean data available, using raw data instead."))))
         if signal_type == 'filt' and self.y_filt is None:
-            warnings.warn(
-                "Warning: No filtered data available, using raw data instead.")
+            warnings.warn("\n".join(wrap(dedent(
+                """Warning: No filtered data available, using raw data
+                instead."""))))
 
         return y_data
 
@@ -143,11 +144,17 @@ class TimeSeries:
             fs_emg=self.param['fs'],
             order=order)
 
-    def get_ecg_peaks(self, ecg_raw=None, bp_filter=True, overwrite=False):
+    def get_ecg_peaks(
+            self, ecg_raw=None, bp_filter=True, overwrite=False, name='ecg'):
         """
         Detect ECG peaks in the provided signal. See preprocessing.ecg_removal
         submodule. ECG peaks are stored in the self.peaks dict under the key
-        'ecg'.
+        `name`. When no ECG channel is provided, the raw signal of the current
+        TimeSeries object is used.
+        When running get_ecg_peaks on a EmgDataGroup and no ECG channel or
+        ecg_raw is provided, EmgDataGroup.ecg_idx is used to detect the QRS
+        peak locations. ecg_idx is auto-detected from the labels on
+        EmgDataGroup initialization, or can be set with the set_ecg_idx method.
         -----------------------------------------------------------------------
         :param ecg_raw: ECG signal, if None, the raw signal is used
         :type ecg_raw: ~numpy.ndarray
@@ -155,59 +162,89 @@ class TimeSeries:
         :type bp_filter: bool
         :overwrite: Overwrite existing peaks
         :type overwrite: bool
+        :param name: Name of the peak set in the self.peaks dict
+        :type name: str
 
         :returns: None
         :rtype: None
         """
-        if 'ecg' in self.peaks and not overwrite:
+        if name in self.peaks and not overwrite:
             raise UserWarning('ECG peaks already detected. Use overwrite=True')
-        else:
-            if ecg_raw is None:
-                lp_cf = min([500.0, 0.95 * self.param['fs'] / 2])
-                ecg_raw = filt.emg_bandpass_butter(
-                    self.y_raw,
-                    high_pass=1,
-                    low_pass=lp_cf,
-                    fs_emg=self.param['fs'])
 
-            ecg_peak_idxs = ecg_rm.detect_ecg_peaks(
-                ecg_raw=ecg_raw,
-                fs=self.param['fs'],
-                bp_filter=bp_filter,
-            )
+        if ecg_raw is None:
+            lp_cf = min([500.0, 0.95 * self.param['fs'] / 2])
+            ecg_raw = filt.emg_bandpass_butter(
+                self.y_raw,
+                high_pass=1,
+                low_pass=lp_cf,
+                fs_emg=self.param['fs'])
 
-            self.set_peaks(
-                signal=ecg_raw,
-                peak_idxs=ecg_peak_idxs,
-                peak_set_name='ecg',
-            )
+        ecg_peak_idxs = ecg_rm.detect_ecg_peaks(
+            ecg_raw=ecg_raw,
+            fs=self.param['fs'],
+            bp_filter=bp_filter,
+        )
 
-    def gating(self, signal_type='filt', gate_width_samples=None,
-               ecg_peak_idxs=None, ecg_raw=None, bp_filter=True, fill_method=3,
-               overwrite=False):
+        self.set_peaks(
+            signal=ecg_raw,
+            peak_idxs=ecg_peak_idxs,
+            peak_set_name=name,
+            overwrite=overwrite,
+        )
+
+    def gating(self, signal_type='filt', ecg_peakset_name='ecg',
+               gate_width_samples=None, fill_method=3, **kwargs):
         """
-        Eliminate ECG artifacts from the provided signal. See
+        Eliminate ECG artifacts from the provided signal based on the peak_idx
+        of the provided PeakSet with `ecg_peakset_name`. See
         preprocessing.ecg_removal and pipelines.ecg_removal_gating submodules.
         The cleaned signal is stored in self.y_clean.
-        When running gating on a EmgDataGroup and no ECG channel or ecg_raw is
-        provided, EmgDataGroup.ecg_idx is used to detect the QRS peak
-        locations. ecg_idx is auto-detected from the labels on EmgDataGroup
-        initialization, or can be set with the set_ecg_idx method. When no ECG
-        channel is provided, the raw signal of the current TimeSeries object is
-        used.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
         """
-        y_data = self.signal_type_data(signal_type=signal_type)
-        if ecg_peak_idxs is None:
-            self.get_ecg_peaks(
-                ecg_raw=ecg_raw, bp_filter=bp_filter, overwrite=overwrite)
-            ecg_peak_idxs = self.peaks['ecg']['peak_idx']
 
+        if any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
+                                         'bp_filter', 'overwrite']):
+            warnings.warn("\n".join(wrap(dedent("""
+                The kwargs 'ecg_peak_idxs', 'ecg_raw', 'bp_filter', 'overwrite'
+                will be removed in future versions of ReSurfEMG:
+                ECG removal will be split in QRS detection with
+                `get_ecg_peaks` and ECG elimination (`gating`/
+                `wavelet_denoising`). Alternatively, create an ECG peakset with
+                `set_peaks` and use `gating` or `wavelet_denoising` directly.
+                """))))
+            ecg_peak_idxs = kwargs.get('ecg_peak_idxs', None)
+            bp_filter = kwargs.get('bp_filter', True)
+            overwrite = kwargs.get('overwrite', False)
+            if ecg_peak_idxs is None:
+                ecg_raw = kwargs.get('ecg_raw', None)
+                self.get_ecg_peaks(
+                    ecg_raw=ecg_raw,
+                    bp_filter=bp_filter,
+                    overwrite=overwrite,
+                    name=ecg_peakset_name)
+            else:
+                if ecg_peakset_name not in self.peaks and not overwrite:
+                    raise UserWarning(
+                        'ECG peaks already detected. Use overwrite=True')
+                ecg_raw = (
+                    kwargs.get('ecg_raw',
+                               self.signal_type_data(signal_type='raw')))
+                self.set_peaks(
+                    signal=ecg_raw,
+                    peak_idxs=ecg_peak_idxs,
+                    peak_set_name=ecg_peakset_name,
+                    overwrite=overwrite,
+                )
+        if ecg_peakset_name not in self.peaks:
+            raise KeyError(
+                f"""Peakset {ecg_peakset_name} does not yet exist. First detect
+                 ECG peaks before using gating.""")
+        y_data = self.signal_type_data(signal_type=signal_type)
+        ecg_peak_idxs = self.peaks[ecg_peakset_name]['peak_idx']
         if gate_width_samples is None:
             gate_width_samples = self.param['fs'] // 10
-
         self.y_clean = ecg_removal_gating(
             y_data,
             ecg_peak_idxs,
@@ -216,29 +253,55 @@ class TimeSeries:
             method=fill_method,
         )
 
-    def wavelet_denoising(self, signal_type='filt', ecg_peak_idxs=None,
-                          ecg_raw=None, n=None, fixed_threshold=None,
-                          bp_filter=True, overwrite=False):
+    def wavelet_denoising(self, signal_type='filt', ecg_peakset_name='ecg',
+                          n=None, fixed_threshold=None, **kwargs):
         """
         Eliminate ECG artifacts from the provided signal. See
         preprocessing.wavelet_denoising submodules. The cleaned signal is
         stored in self.y_clean.
-        When running wavelet_denoising on a EmgDataGroup and no ECG channel or
-        ecg_raw is provided, EmgDataGroup.ecg_idx is used to detect the QRS
-        peak locations. ecg_idx is auto-detected from the labels on
-        EmgDataGroup initialization, or can be set with the set_ecg_idx method.
-        When no ECG channel is provided, the raw signal of the current
-        TimeSeries object is used.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
         """
+        if any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
+                                         'bp_filter', 'overwrite']):
+            warnings.warn("\n".join(wrap(dedent("""
+                The kwargs 'ecg_peak_idxs', 'ecg_raw', 'bp_filter', 'overwrite'
+                will be removed in future versions of ReSurfEMG.
+                ECG removal will be split in QRS detection with
+                `get_ecg_peaks` and ECG elimination (`gating`/
+                `wavelet_denoising`). Alternatively, create an ECG peakset with
+                `set_peaks` and use `gating` or `wavelet_denoising` directly.
+                """))))
+            ecg_peak_idxs = kwargs.get('ecg_peak_idxs', None)
+            bp_filter = kwargs.get('bp_filter', True)
+            overwrite = kwargs.get('overwrite', False)
+            if ecg_peak_idxs is None:
+                ecg_raw = kwargs.get('ecg_raw', None)
+                self.get_ecg_peaks(
+                    ecg_raw=ecg_raw,
+                    bp_filter=bp_filter,
+                    overwrite=overwrite,
+                    name=ecg_peakset_name)
+            else:
+                if ecg_peakset_name not in self.peaks and not overwrite:
+                    raise UserWarning(
+                        'ECG peaks already detected. Use overwrite=True')
+                ecg_raw = (
+                    kwargs.get('ecg_raw',
+                               self.signal_type_data(signal_type='raw')))
+                self.set_peaks(
+                    signal=ecg_raw,
+                    peak_idxs=ecg_peak_idxs,
+                    peak_set_name=ecg_peakset_name,
+                    overwrite=overwrite,
+                )
+        if ecg_peakset_name not in self.peaks:
+            raise KeyError(
+                f"""ECG peakset {ecg_peakset_name}. First detect ECG peaks
+                before using wavelet denoising.""")
         y_data = self.signal_type_data(signal_type=signal_type)
-        if ecg_peak_idxs is None:
-            self.get_ecg_peaks(
-                ecg_raw=ecg_raw, bp_filter=bp_filter, overwrite=overwrite)
-            ecg_peak_idxs = self.peaks['ecg']['peak_idx']
-
+        ecg_peak_idxs = self.peaks['ecg']['peak_idx']
         if n is None:
             n = int(np.log(self.param['fs']/20) // np.log(2))
 
@@ -312,7 +375,7 @@ class TimeSeries:
         else:
             raise ValueError('Invalid method')
 
-    def set_peaks(self, peak_idxs, signal, peak_set_name):
+    def set_peaks(self, peak_idxs, signal, peak_set_name, overwrite=False):
         """
         Store a new PeaksSet object in the self.peaks dict under the key
         peak_set_name.
@@ -320,6 +383,8 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if peak_set_name in self.peaks and not overwrite:
+            raise UserWarning('PeaksSet already exists. Use overwrite=True')
         self.peaks[peak_set_name] = PeaksSet(
             peak_idxs=peak_idxs, t_data=self.t_data, signal=signal)
 
@@ -331,6 +396,7 @@ class TimeSeries:
         peak_set_name='breaths',
         start_idx=0,
         end_idx=None,
+        overwrite=False,
     ):
         """
         Find breath peaks in provided EMG envelope signal. See
@@ -346,8 +412,9 @@ class TimeSeries:
         y_baseline = (self.y_baseline if self.y_baseline is not None
                       else np.zeros(self.y_env.shape))
         if self.y_baseline is None:
-            warnings.warn("EMG baseline not yet defined. Peak detection "
-                          "relative to zero.")
+            warnings.warn("\n".join(wrap(dedent(
+                """EMG baseline not yet defined. Peak detection relative to
+                zero."""))))
 
         if ((end_idx is not None and end_idx > len(self.y_env))
                 or start_idx > len(self.y_env)):
@@ -365,7 +432,7 @@ class TimeSeries:
             min_peak_width_s=min_peak_width_s)
         peak_idxs += start_idx
         self.set_peaks(peak_idxs=peak_idxs, signal=self.y_env,
-                       peak_set_name=peak_set_name)
+                       peak_set_name=peak_set_name, overwrite=overwrite)
 
     def link_peak_set(self, peak_set_name, t_reference_peaks,
                       linked_peak_set_name=None):
@@ -442,8 +509,9 @@ class TimeSeries:
                     'Baseline in not yet defined, but is required to calculate'
                     + ' the area under the baseline.')
             else:
-                warnings.warn('Baseline in not yet defined. Calculating time-'
-                              + 'product with reference to 0.')
+                warnings.warn("\n".join(wrap(dedent(
+                    """Baseline in not yet defined. Calculating time-product
+                    with reference to 0."""))))
                 baseline = np.zeros(peak_set.signal.shape)
         else:
             baseline = self.y_baseline
@@ -818,6 +886,7 @@ class TimeSeriesGroup:
         self.param['fs'] = fs
         self._available_methods = [
             'envelope', 'baseline', 'plot_full', 'plot_peaks', 'plot_markers',
+            'set_peaks'
         ]
         data_shape = list(np.array(y_raw).shape)
         data_dims = len(data_shape)
@@ -902,18 +971,49 @@ class TimeSeriesGroup:
             channel_idxs = np.array([channel_idxs])
 
         if method in self._available_methods:
-            if method in ['gating', 'wavelet_denoising']:
-                if 'ecg_peak_idxs' in kwargs:
-                    print('Provided ECG peak indices used for ECG removal.')
-                elif 'ecg_raw' in kwargs:
-                    print('Provided raw ECG used for ECG removal.')
+            if method == 'get_ecg_peaks':
+                if 'ecg_raw' in kwargs and kwargs['ecg_raw'] is not None:
+                    print('Provided raw ECG used for ECG peak detection.')
+                elif self.ecg_idx is not None:
+                    kwargs['ecg_raw'] = self[self.ecg_idx].y_raw
+                    print('Set ECG channel used for ECG peak detection.')
                 else:
-                    if self.ecg_idx is not None:
-                        kwargs['ecg_raw'] = self[self.ecg_idx].y_raw
-                        print('Set ECG channel used for ECG removal.')
+                    print(
+                        'Channel raw signals used for ECG peak detection.')
+
+            if method in ['gating', 'wavelet_denoising']:
+                if (all(not kwargs.get('ecg_peakset_name', 'ecg') in
+                        channel.peaks for channel in self.channels) or
+                    any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
+                                                  'bp_filter', 'overwrite'])):
+                    warnings.warn("\n".join(wrap(dedent(
+                        """
+                        The kwargs 'ecg_peak_idxs', 'ecg_raw', 'bp_filter',
+                        'overwrite' will be removed from the gating and wavelet
+                        denoising methods in future versions of ReSurfEMG:
+                        ECG removal will be split in QRS detection with
+                        `get_ecg_peaks` and ECG elimination (`gating`/
+                        `wavelet_denoising`):
+                        TimeSeriesGroup.run('get_ecg_peaks', ...)
+                        Before running:
+                        TimeSeriesGroup.run('gating', ...) or
+                        TimeSeriesGroup.run('wavelet_denoising', ...)\n
+                        Alternatively, create an ECG peakset with `set_peaks`
+                        and use `gating` or `wavelet_denoising` directly."""
+                    ))))
+                    ecg_kwargs = {
+                        'channel_idxs': channel_idxs,
+                        'overwrite': kwargs.pop('overwrite', False)}
+                    if 'ecg_peak_idxs' in kwargs:
+                        ecg_kwargs['ecg_peak_idxs'] = kwargs.pop(
+                            'ecg_peak_idxs')
+                        self.run('set_peaks', **ecg_kwargs)
                     else:
-                        raise ValueError("No ECG channel and peak indices "
-                                         "provided")
+                        ecg_kwargs = {
+                            'ecg_raw': kwargs.pop('ecg_raw', None),
+                            'bp_filter': kwargs.pop('bp_filter', True)}
+                        self.run('get_ecg_peaks', **ecg_kwargs)
+
             elif method.startswith('plot_'):
                 if 'axes' not in kwargs:
                     _, kwargs['axes'] = plt.subplots(
@@ -926,8 +1026,8 @@ class TimeSeriesGroup:
                         raise ValueError("Provided axes have not enough rows "
                                          "for all channels to plot.")
                     elif len(channel_idxs) < len(kwargs['axes']):
-                        warnings.warn(
-                            'More axes provided than channels to plot.')
+                        warnings.warn("\n".join(wrap(dedent(
+                            'More axes provided than channels to plot.'))))
                 elif method in ['plot_peaks', 'plot_markers']:
                     kwargs['axes'] = np.atleast_2d(kwargs['axes'])
 
@@ -965,6 +1065,7 @@ class EmgDataGroup(TimeSeriesGroup):
         super().__init__(
             y_raw, t_data=t_data, fs=fs, labels=labels, units=units)
         self._available_methods.append('filter_emg')
+        self._available_methods.append('get_ecg_peaks')
         self._available_methods.append('gating')
         self._available_methods.append('wavelet_denoising')
 
@@ -1046,7 +1147,8 @@ class VentilatorDataGroup(TimeSeriesGroup):
         self.peep = np.round(np.median(
             self.channels[pressure_idx].y_raw[v_ee_pks]))
 
-    def find_occluded_breaths(self, pressure_idx=None, peep=None, **kwargs):
+    def find_occluded_breaths(
+            self, pressure_idx=None, peep=None, overwrite=False, **kwargs):
         """
         Find end-expiratory occlusion manoeuvres in ventilator pressure
         timeseries data. See postprocessing.event_detection submodule.
@@ -1070,10 +1172,10 @@ class VentilatorDataGroup(TimeSeriesGroup):
         peak_idxs = peak_idxs + kwargs['start_idx']
         self.channels[pressure_idx].set_peaks(
             signal=self.channels[pressure_idx].y_raw, peak_idxs=peak_idxs,
-            peak_set_name='Pocc')
+            peak_set_name='Pocc', overwrite=overwrite)
 
     def find_tidal_volume_peaks(
-        self, volume_idx=None, pressure_idx=None, **kwargs,
+        self, volume_idx=None, pressure_idx=None, overwrite=False, **kwargs,
     ):
         """
         Find tidal-volume peaks in ventilator volume signal. Peaks are stored
@@ -1104,12 +1206,13 @@ class VentilatorDataGroup(TimeSeriesGroup):
 
         self.channels[volume_idx].set_peaks(
             signal=self.channels[volume_idx].y_raw, peak_idxs=peak_idxs,
-            peak_set_name='ventilator_breaths')
+            peak_set_name='ventilator_breaths', overwrite=overwrite)
 
         pressure_idx = pressure_idx or self.p_vent_idx
         if pressure_idx is not None:
             self.channels[pressure_idx].set_peaks(
                 signal=self.channels[pressure_idx].y_raw, peak_idxs=peak_idxs,
-                peak_set_name='ventilator_breaths')
+                peak_set_name='ventilator_breaths', overwrite=overwrite)
         else:
-            warnings.warn('pressure_idx and self.p_vent_idx not defined.')
+            warnings.warn("\n".join(wrap(dedent(
+                'pressure_idx and self.p_vent_idx not defined.'))))
