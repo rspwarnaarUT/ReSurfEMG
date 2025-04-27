@@ -124,14 +124,15 @@ class TestTimeSeriesGroup(unittest.TestCase):
             len(self.emg_timeseries[0].y_filt),
             len(self.y_emg[0, :])
         )
-    emg_timeseries.run('wavelet_denoising', overwrite=True)
+    emg_timeseries.run('get_ecg_peaks', overwrite=True)
+    emg_timeseries.run('wavelet_denoising')
     def test_clean_data_wavelet_denosing(self):
         self.assertEqual(
             len(self.emg_timeseries[0].y_clean),
             len(self.y_emg[0, :])
         )
 
-    emg_timeseries.run('gating', overwrite=True)
+    emg_timeseries.run('gating')
     def test_clean_data_gating(self):
         self.assertEqual(
             len(self.emg_timeseries[0].y_clean),
