@@ -344,7 +344,7 @@ class TimeSeries:
             raise ValueError('Invalid envelope type')
 
     def baseline(self, percentile=33, window_s=None, step_s=None,
-                 method='default', signal_type=None, augm_percentile=25,
+                 base_method='default', signal_type=None, augm_percentile=25,
                  ma_window=None, perc_window=None):
         """
         Derive the moving baseline of the provided signal. See
@@ -359,11 +359,11 @@ class TimeSeries:
         signal_type = signal_type or 'env'
 
         y_baseline_data = self.signal_type_data(signal_type=signal_type)
-        if method in ('default', 'moving_baseline'):
+        if base_method in ('default', 'moving_baseline'):
             self.y_baseline = bl.moving_baseline(
                 y_baseline_data, window_s=window_s, step_s=step_s,
                 set_percentile=percentile)
-        elif method == 'slopesum_baseline':
+        elif base_method == 'slopesum_baseline':
             if 'fs' not in self.param:
                 raise ValueError(
                     'Sampling rate is not defined.')
