@@ -39,7 +39,7 @@ readme = "README.md"
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/ReSurfEMG"
+Homepage = "https://github.com/ReSurfEMG-org"
 Documentation = "https://resurfemg-org.github.io/ReSurfEMG/"
 Repository = "https://github.com/resurfemg-org/ReSurfEMG"
 Issues = "https://github.com/resurfemg-org/ReSurfEMG/issues"
