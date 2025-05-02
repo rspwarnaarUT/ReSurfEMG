@@ -29,14 +29,11 @@ from resurfemg.data_connector.peakset_class import PeaksSet
 class TimeSeries:
     """
     Data class to store, process, and plot single channel time series data.
+    Data is stored in the _y_data dictionary, which can be accessed using the
+    TimeSeries[`signal_type`]. The default signal types are:
+    'raw', 'filt', 'clean', 'env', 'env_ci', and 'baseline'.
     Defined properties:
     - t_data: time axis data
-    - y_raw: raw signal data
-    - y_filt: filtered signal data (before ECG elimination)
-    - y_clean: cleaned signal data (after ECG elimination)
-    - y_env: envelope signal data
-    - y_env_ci: envelope signal confidence interval
-    - y_baseline: baseline signal data
     - label: channel label
     - y_units: channel signal units
     - param: dictionary of channel parameters (fs, n_samp)
@@ -68,14 +65,10 @@ class TimeSeries:
             self.param['n_samp'] = y_raw.shape[0]
         else:
             raise ValueError("Invalid y_raw dimensions")
-        self.y_raw = y_raw.flatten()
-
-        self.peaks = dict()
-        self.y_filt = None
-        self.y_clean = None
-        self.y_env = None
-        self.y_env_ci = None
-        self.y_baseline = None
+        self._y_data = {
+            'raw': y_raw,
+        }
+        self.peaks = {}
 
         if t_data is None and fs is None:
             self.t_data = np.arange(self.param['n_samp'])
@@ -92,6 +85,48 @@ class TimeSeries:
         self.label = label or ''
         self.y_units = units or '?'
 
+    def __getattr__(self, item):
+        default_y_data = ['raw', 'filt', 'clean', 'env', 'env_ci', 'baseline']
+        if item.replace('y_', '') in default_y_data:
+            key = item.replace('y_', '')
+            warnings.warn("\n".join(wrap(dedent(
+                f"""
+                The attribute y_{key} is deprecated to allow for more, and
+                custom, signal types. Use '{self.__class__.__name__}'[{key}]
+                instead."""))), FutureWarning)
+            return self._y_data.get(key, None)
+        return object.__getattr__(self, item)
+
+    def __getitem__(self, key):
+        """
+        Get the signal data of the requested type. The default signal types
+        are: 'raw', 'filt', 'clean', 'env', 'env_ci', and 'baseline'.
+        -----------------------------------------------------------------------
+        :param key: one of 'raw', 'filt', 'clean', 'env', 'env_ci', 'baseline'
+        or a custom signal type
+        :type key: str
+
+        :returns y_data: data of the selected signal type
+        :rtype y_data: ~numpy.ndarray
+        """
+        return self._y_data.get(key, None)
+
+    def __setitem__(self, key, value):
+        """
+        Set the signal data of the requested type. The default signal types
+        are: 'raw', 'filt', 'clean', 'env', 'env_ci', and 'baseline'.
+        -----------------------------------------------------------------------
+        :param key: one of 'raw', 'filt', 'clean', 'env', 'env_ci', 'baseline'
+        or a custom signal type
+        :type key: str
+        :param value: data of the selected signal type
+        :type value: ~numpy.ndarray
+
+        :returns: None
+        :rtype: None
+        """
+        self._y_data[key] = value
+
     def signal_type_data(self, signal_type=None):
         """
         Automatically select the most advanced data type eligible for a
@@ -103,28 +138,39 @@ class TimeSeries:
         :returns y_data: data of the selected signal type
         :rtype y_data: ~numpy.ndarray
         """
-        y_data = np.zeros(self.y_raw.shape)
-        signal_map = {
-            None: self.y_env if self.y_env is not None else (
-                self.y_clean if self.y_clean is not None else (
-                    self.y_filt if self.y_filt is not None else self.y_raw)),
-            'env': self.y_env,
-            'clean': self.y_clean if self.y_clean is not None else (
-                self.y_filt if self.y_filt is not None else self.y_raw),
-            'filt': self.y_filt if self.y_filt is not None else self.y_raw,
-            'raw': self.y_raw
-        }
-        y_data = signal_map.get(signal_type, self.y_raw)
-        if signal_type == 'env' and self.y_env is None:
-            raise IndexError('No envelope defined for this signal.')
-        if signal_type == 'clean' and self.y_clean is None:
-            warnings.warn("\n".join(wrap(dedent(
-                "Warning: No clean data available, using raw data instead."))))
-        if signal_type == 'filt' and self.y_filt is None:
-            warnings.warn("\n".join(wrap(dedent(
-                """Warning: No filtered data available, using raw data
-                instead."""))))
-
+        y_data = np.zeros(self['raw'].shape)
+        res_order = ['env', 'clean', 'filt', 'raw']
+        if signal_type == 'env':
+            try:
+                y_data = self['env']
+            except KeyError as e:
+                raise KeyError('No envelope defined for this signal.', e)
+        elif signal_type is None or signal_type in res_order:
+            # If the signal type is one of the resolution order, find the data
+            # or its next best option
+            search_signal_type = signal_type or 'env'
+            start_idx = res_order.index(search_signal_type)
+            _res_order = res_order[start_idx:]
+            for idx, option in enumerate(_res_order):
+                if option in self._y_data:
+                    y_data = self[option]
+                    find_idx = idx
+                    break
+            else:
+                raise KeyError(
+                    f"Invalid signal type: {signal_type}"
+                    f" or no data available for {signal_type}.")
+            if signal_type is not None and find_idx > 0:
+                warnings.warn("\n".join(wrap(dedent(
+                     f"""Warning: No {signal_type} data available, using raw
+                     data instead."""))))
+        else:
+            # If the signal type is not in the resolution order, find the data
+            # or its next best option
+            if signal_type in self._y_data:
+                y_data = self[signal_type]
+            else:
+                raise KeyError(f"Invalid signal type: {signal_type}")
         return y_data
 
     def filter_emg(self, signal_type='raw', hp_cf=20.0, lp_cf=500.0, order=3):
@@ -137,7 +183,7 @@ class TimeSeries:
         """
         y_data = self.signal_type_data(signal_type=signal_type)
         # Eliminate the baseline wander from the data using a band-pass filter
-        self.y_filt = filt.emg_bandpass_butter(
+        self['filt'] = filt.emg_bandpass_butter(
             y_data,
             high_pass=hp_cf,
             low_pass=lp_cf,
@@ -174,7 +220,7 @@ class TimeSeries:
         if ecg_raw is None:
             lp_cf = min([500.0, 0.95 * self.param['fs'] / 2])
             ecg_raw = filt.emg_bandpass_butter(
-                self.y_raw,
+                self['raw'],
                 high_pass=1,
                 low_pass=lp_cf,
                 fs_emg=self.param['fs'])
@@ -198,7 +244,7 @@ class TimeSeries:
         Eliminate ECG artifacts from the provided signal based on the peak_idx
         of the provided PeakSet with `ecg_peakset_name`. See
         preprocessing.ecg_removal and pipelines.ecg_removal_gating submodules.
-        The cleaned signal is stored in self.y_clean.
+        The cleaned signal is stored in self['clean'].
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -213,7 +259,7 @@ class TimeSeries:
                 `get_ecg_peaks` and ECG elimination (`gating`/
                 `wavelet_denoising`). Alternatively, create an ECG peakset with
                 `set_peaks` and use `gating` or `wavelet_denoising` directly.
-                """))))
+                """))), FutureWarning)
             ecg_peak_idxs = kwargs.get('ecg_peak_idxs', None)
             bp_filter = kwargs.get('bp_filter', True)
             overwrite = kwargs.get('overwrite', False)
@@ -245,7 +291,7 @@ class TimeSeries:
         ecg_peak_idxs = self.peaks[ecg_peakset_name]['peak_idx']
         if gate_width_samples is None:
             gate_width_samples = self.param['fs'] // 10
-        self.y_clean = ecg_removal_gating(
+        self['clean'] = ecg_removal_gating(
             y_data,
             ecg_peak_idxs,
             gate_width_samples,
@@ -258,7 +304,7 @@ class TimeSeries:
         """
         Eliminate ECG artifacts from the provided signal. See
         preprocessing.wavelet_denoising submodules. The cleaned signal is
-        stored in self.y_clean.
+        stored in self['clean'].
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -272,7 +318,7 @@ class TimeSeries:
                 `get_ecg_peaks` and ECG elimination (`gating`/
                 `wavelet_denoising`). Alternatively, create an ECG peakset with
                 `set_peaks` and use `gating` or `wavelet_denoising` directly.
-                """))))
+                """))), FutureWarning)
             ecg_peak_idxs = kwargs.get('ecg_peak_idxs', None)
             bp_filter = kwargs.get('bp_filter', True)
             overwrite = kwargs.get('overwrite', False)
@@ -308,7 +354,7 @@ class TimeSeries:
         if fixed_threshold is None:
             fixed_threshold = 4.5
 
-        self.y_clean, *_ = ecg_rm.wavelet_denoising(
+        self['clean'], *_ = ecg_rm.wavelet_denoising(
             y_data, ecg_peak_idxs, fs=self.param['fs'], hard_thresholding=True,
             n=n, fixed_threshold=fixed_threshold, wavelet_type='db2')
 
@@ -317,7 +363,7 @@ class TimeSeries:
         """
         Derive the moving envelope of the provided signal. See
         preprocessing.envelope submodule. The envelope is stored in the
-        self.y_env attribute.
+        self['env'] attribute.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -331,14 +377,14 @@ class TimeSeries:
 
         y_data = self.signal_type_data(signal_type=signal_type)
         if env_type == 'rms' or env_type is None:
-            self.y_env = evl.full_rolling_rms(y_data, env_window)
+            self['env'] = evl.full_rolling_rms(y_data, env_window)
             if ci_alpha is not None:
-                self.y_env_ci = evl.rolling_rms_ci(
+                self['env_ci'] = evl.rolling_rms_ci(
                     y_data, env_window, alpha=ci_alpha)
         elif env_type == 'arv':
-            self.y_env = evl.full_rolling_arv(y_data, env_window)
+            self['env'] = evl.full_rolling_arv(y_data, env_window)
             if ci_alpha is not None:
-                self.y_env_ci = evl.rolling_arv_ci(
+                self['env_ci'] = evl.rolling_arv_ci(
                     y_data, env_window, alpha=ci_alpha)
         else:
             raise ValueError('Invalid envelope type')
@@ -349,7 +395,7 @@ class TimeSeries:
         """
         Derive the moving baseline of the provided signal. See
         postprocessing.baseline submodule. The baseline is stored in the
-        self.y_baseline attribute.
+        self['baseline'] attribute.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
@@ -360,14 +406,14 @@ class TimeSeries:
 
         y_baseline_data = self.signal_type_data(signal_type=signal_type)
         if base_method in ('default', 'moving_baseline'):
-            self.y_baseline = bl.moving_baseline(
+            self['baseline'] = bl.moving_baseline(
                 y_baseline_data, window_s=window_s, step_s=step_s,
                 set_percentile=percentile)
         elif base_method == 'slopesum_baseline':
             if 'fs' not in self.param:
                 raise ValueError(
                     'Sampling rate is not defined.')
-            self.y_baseline, _, _, _ = bl.slopesum_baseline(
+            self['baseline'], _, _, _ = bl.slopesum_baseline(
                     y_baseline_data, window_s=window_s, step_s=step_s,
                     fs=self.param['fs'], set_percentile=percentile,
                     augm_percentile=augm_percentile, ma_window=ma_window,
@@ -406,32 +452,32 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
-        if self.y_env is None:
+        if 'env' not in self._y_data:
             raise ValueError('Envelope not yet defined.')
 
-        y_baseline = (self.y_baseline if self.y_baseline is not None
-                      else np.zeros(self.y_env.shape))
-        if self.y_baseline is None:
+        y_baseline = (self['baseline'] if self['baseline'] is not None
+                      else np.zeros(self['env'].shape))
+        if self['baseline'] is None:
             warnings.warn("\n".join(wrap(dedent(
                 """EMG baseline not yet defined. Peak detection relative to
                 zero."""))))
 
-        if ((end_idx is not None and end_idx > len(self.y_env))
-                or start_idx > len(self.y_env)):
+        if ((end_idx is not None and end_idx > len(self['env']))
+                or start_idx > len(self['env'])):
             raise ValueError('Index out of range.')
 
-        end_idx = end_idx or len(self.y_env)
+        end_idx = end_idx or len(self['env'])
         if end_idx < start_idx:
             raise ValueError('End index smaller than start index.')
 
         min_peak_width_s = min_peak_width_s or self.param['fs'] // 5
 
         peak_idxs = evt.detect_emg_breaths(
-            self.y_env[start_idx:end_idx], y_baseline[start_idx:end_idx],
+            self['env'][start_idx:end_idx], y_baseline[start_idx:end_idx],
             threshold=threshold, prominence_factor=prominence_factor,
             min_peak_width_s=min_peak_width_s)
         peak_idxs += start_idx
-        self.set_peaks(peak_idxs=peak_idxs, signal=self.y_env,
+        self.set_peaks(peak_idxs=peak_idxs, signal=self['env'],
                        peak_set_name=peak_set_name, overwrite=overwrite)
 
     def link_peak_set(self, peak_set_name, t_reference_peaks,
@@ -503,7 +549,7 @@ class TimeSeries:
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
 
-        if self.y_baseline is None:
+        if self['baseline'] is None:
             if include_aub:
                 raise ValueError(
                     'Baseline in not yet defined, but is required to calculate'
@@ -514,7 +560,7 @@ class TimeSeries:
                     with reference to 0."""))))
                 baseline = np.zeros(peak_set.signal.shape)
         else:
-            baseline = self.y_baseline
+            baseline = self['baseline']
 
         time_products = feat.time_product(
             signal=peak_set.signal, fs=self.param['fs'],
@@ -594,12 +640,12 @@ class TimeSeries:
         axis.set_ylabel(self.label + ' (' + self.y_units + ')')
 
         if (baseline_bool is True
-                and self.y_baseline is not None
-                and np.any(~np.isnan(self.y_baseline), axis=0)):
-            axis.plot(self.t_data, self.y_baseline, color=colors[1])
-        if plot_ci and self.y_env_ci is not None:
-            axis.fill_between(self.t_data, self.y_env_ci[0], self.y_env_ci[1],
-                              color=colors[0], alpha=0.5)
+                and self['baseline'] is not None
+                and np.any(~np.isnan(self['baseline']), axis=0)):
+            axis.plot(self.t_data, self['baseline'], color=colors[1])
+        if plot_ci and self['env_ci'] is not None:
+            axis.fill_between(self.t_data, self['env_ci'][0],
+                              self['env_ci'][1], color=colors[0], alpha=0.5)
 
     def plot_markers(self, peak_set_name, axes, valid_only=False,
                      colors=None, markers=None):
@@ -715,17 +761,17 @@ class TimeSeries:
         y_data = (peak_set.signal if signal_type is None
                   else self.signal_type_data(signal_type=signal_type))
         m_s = margin_s if margin_s is not None else self.param['fs'] // 2
-        ci = self.y_env_ci
+        ci = self['env_ci']
         for axis, x_start, x_end in zip(axes, start_idxs, end_idxs):
             s_start, s_end = max(0, x_start - m_s), max(0, x_end + m_s)
             axis.grid(True)
             axis.plot(self.t_data[s_start:s_end], y_data[s_start:s_end],
                       color=colors[0])
-            if baseline_bool and self.y_baseline is not None and np.any(
-                    ~np.isnan(self.y_baseline), axis=0):
+            if baseline_bool and self['baseline'] is not None and np.any(
+                    ~np.isnan(self['baseline']), axis=0):
                 axis.plot(self.t_data[s_start:s_end],
-                          self.y_baseline[s_start:s_end], color=colors[1])
-            if plot_ci and self.y_env_ci is not None:
+                          self['baseline'][s_start:s_end], color=colors[1])
+            if plot_ci and self['env_ci'] is not None:
                 axis.fill_between(
                     self.t_data[s_start:s_end], ci[0][s_start:s_end],
                     ci[1][s_start:s_end], color=colors[0], alpha=0.5)
@@ -975,7 +1021,7 @@ class TimeSeriesGroup:
                 if 'ecg_raw' in kwargs and kwargs['ecg_raw'] is not None:
                     print('Provided raw ECG used for ECG peak detection.')
                 elif self.ecg_idx is not None:
-                    kwargs['ecg_raw'] = self[self.ecg_idx].y_raw
+                    kwargs['ecg_raw'] = self[self.ecg_idx]['raw']
                     print('Set ECG channel used for ECG peak detection.')
                 else:
                     print(
@@ -1000,7 +1046,7 @@ class TimeSeriesGroup:
                         TimeSeriesGroup.run('wavelet_denoising', ...)\n
                         Alternatively, create an ECG peakset with `set_peaks`
                         and use `gating` or `wavelet_denoising` directly."""
-                    ))))
+                    ))), FutureWarning)
                     ecg_kwargs = {
                         'channel_idxs': channel_idxs,
                         'overwrite': kwargs.pop('overwrite', False)}
@@ -1143,9 +1189,10 @@ class VentilatorDataGroup(TimeSeriesGroup):
         if volume_idx is None:
             raise ValueError('volume_idx and self.v_vent_idx not defined')
 
-        v_ee_pks, _ = scipy.signal.find_peaks(-self.channels[volume_idx].y_raw)
+        v_ee_pks, _ = scipy.signal.find_peaks(
+            -self.channels[volume_idx]['raw'])
         self.peep = np.round(np.median(
-            self.channels[pressure_idx].y_raw[v_ee_pks]))
+            self.channels[pressure_idx]['raw'][v_ee_pks]))
 
     def find_occluded_breaths(
             self, pressure_idx=None, peep=None, overwrite=False, **kwargs):
@@ -1161,7 +1208,7 @@ class VentilatorDataGroup(TimeSeriesGroup):
         :rtype: None
         """
         pressure_idx = pressure_idx or self.p_vent_idx
-        kwargs['p_vent'] = self.channels[pressure_idx].y_raw
+        kwargs['p_vent'] = self.channels[pressure_idx]['raw']
         kwargs['fs'] = self.param['fs']
 
         kwargs['peep'] = peep or self.peep
@@ -1171,7 +1218,7 @@ class VentilatorDataGroup(TimeSeriesGroup):
         peak_idxs = evt.find_occluded_breaths(**kwargs)
         peak_idxs = peak_idxs + kwargs['start_idx']
         self.channels[pressure_idx].set_peaks(
-            signal=self.channels[pressure_idx].y_raw, peak_idxs=peak_idxs,
+            signal=self.channels[pressure_idx]['raw'], peak_idxs=peak_idxs,
             peak_set_name='Pocc', overwrite=overwrite)
 
     def find_tidal_volume_peaks(
@@ -1195,23 +1242,23 @@ class VentilatorDataGroup(TimeSeriesGroup):
                       else self.v_vent_idx)
         if volume_idx is None:
             raise ValueError('volume_idx and v_vent_idx not defined')
-        kwargs['v_vent'] = self.channels[volume_idx].y_raw
+        kwargs['v_vent'] = self.channels[volume_idx]['raw']
 
         kwargs['start_idx'] = kwargs.setdefault('start_idx', 0)
         kwargs['end_idx'] = kwargs.setdefault(
-            'end_idx', len(self.channels[volume_idx].y_raw) - 1)
+            'end_idx', len(self.channels[volume_idx]['raw']) - 1)
         kwargs['width_s'] = kwargs.setdefault('width_s', self.param['fs'] // 4)
         peak_idxs = (evt.detect_ventilator_breath(**kwargs)
                      + kwargs['start_idx'])
 
         self.channels[volume_idx].set_peaks(
-            signal=self.channels[volume_idx].y_raw, peak_idxs=peak_idxs,
+            signal=self.channels[volume_idx]['raw'], peak_idxs=peak_idxs,
             peak_set_name='ventilator_breaths', overwrite=overwrite)
 
         pressure_idx = pressure_idx or self.p_vent_idx
         if pressure_idx is not None:
             self.channels[pressure_idx].set_peaks(
-                signal=self.channels[pressure_idx].y_raw, peak_idxs=peak_idxs,
+                signal=self.channels[pressure_idx]['raw'], peak_idxs=peak_idxs,
                 peak_set_name='ventilator_breaths', overwrite=overwrite)
         else:
             warnings.warn("\n".join(wrap(dedent(
