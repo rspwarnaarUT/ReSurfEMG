@@ -142,7 +142,7 @@ def test_snr(
     snr_peaks = qa.snr_pseudo(
         src_signal=peak_set.signal,
         peaks=peak_set.peak_df['peak_idx'].to_numpy(),
-        baseline=timeseries.y_baseline,
+        baseline=timeseries['baseline'],
         fs=timeseries.param['fs'],
     )
     quality_values_df['snr'] = snr_peaks
@@ -170,7 +170,7 @@ def test_aub(
         peak_idxs=peak_set.peak_df['peak_idx'].to_numpy(),
         start_idxs=peak_set.peak_df['start_idx'].to_numpy(),
         end_idxs=peak_set.peak_df['end_idx'].to_numpy(),
-        baseline=timeseries.y_baseline,
+        baseline=timeseries['baseline'],
         aub_window_s=None,
         ref_signal=None,
         aub_threshold=cutoff['aub'],
@@ -356,7 +356,7 @@ def test_pocc_upslope(
         raise ValueError('PTPs not determined, but required for Pocc upslope '
                          + 'evaluaton.')
     valid_poccs, criteria_matrix = qa.pocc_quality(
-        p_vent_signal=timeseries.y_raw,
+        p_vent_signal=timeseries['raw'],
         pocc_peaks=peak_set.peak_df['peak_idx'].to_numpy(),
         pocc_ends=peak_set.peak_df['end_idx'].to_numpy(),
         ptp_occs=peak_set.peak_df[

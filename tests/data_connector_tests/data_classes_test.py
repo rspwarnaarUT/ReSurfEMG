@@ -46,7 +46,7 @@ class TestTimeSeriesGroup(unittest.TestCase):
         vent_timeseries.p_vent_idx,
         start_idx=360*vent_timeseries.param['fs'])
     p_vent = vent_timeseries[vent_timeseries.p_vent_idx]
-    p_vent.peaks['Pocc'].detect_on_offset(baseline=p_vent.y_baseline)
+    p_vent.peaks['Pocc'].detect_on_offset(baseline=p_vent['baseline'])
     def test_find_occluded_breaths(self):
         np.testing.assert_array_equal(
             self.p_vent.peaks['Pocc'].peak_df['peak_idx'],
@@ -66,7 +66,7 @@ class TestTimeSeriesGroup(unittest.TestCase):
     # Calculate PTPs
     p_vent.calculate_time_products(
         peak_set_name='Pocc',
-        aub_reference_signal=p_vent.y_baseline,
+        aub_reference_signal=p_vent['baseline'],
         parameter_name='PTPocc')
 
     def test_time_product(self):
@@ -109,7 +109,7 @@ class TestTimeSeriesGroup(unittest.TestCase):
 
     def test_raw_data(self):
         self.assertEqual(
-            len(self.emg_timeseries[0].y_raw),
+            len(self.emg_timeseries[0]['raw']),
             len(self.y_emg[0, :])
         )
 
@@ -121,42 +121,42 @@ class TestTimeSeriesGroup(unittest.TestCase):
     emg_timeseries.run('filter_emg')
     def test_filtered_data(self):
         self.assertEqual(
-            len(self.emg_timeseries[0].y_filt),
+            len(self.emg_timeseries[0]['filt']),
             len(self.y_emg[0, :])
         )
     emg_timeseries.run('get_ecg_peaks', overwrite=True)
     emg_timeseries.run('wavelet_denoising')
     def test_clean_data_wavelet_denosing(self):
         self.assertEqual(
-            len(self.emg_timeseries[0].y_clean),
+            len(self.emg_timeseries[0]['clean']),
             len(self.y_emg[0, :])
         )
 
     emg_timeseries.run('gating')
     def test_clean_data_gating(self):
         self.assertEqual(
-            len(self.emg_timeseries[0].y_clean),
+            len(self.emg_timeseries[0]['clean']),
             len(self.y_emg[0, :])
         )
 
     emg_timeseries.run('envelope', env_type='rms', signal_type='clean')
     def test_env_data_rms(self):
         self.assertEqual(
-            len(self.emg_timeseries[0].y_env),
+            len(self.emg_timeseries[0]['env']),
             len(self.y_emg[0, :])
         )
 
     emg_timeseries.run('envelope', env_type='arv', signal_type='clean')
     def test_env_data_arv(self):
         self.assertEqual(
-            len(self.emg_timeseries[0].y_env),
+            len(self.emg_timeseries[0]['env']),
             len(self.y_emg[0, :])
         )
 
     emg_timeseries.run('baseline')
     def test_baseline_data(self):
         self.assertEqual(
-            len(self.emg_timeseries[0].y_baseline),
+            len(self.emg_timeseries[0]['baseline']),
             len(self.y_emg[0, :])
         )
 
@@ -164,7 +164,7 @@ class TestTimeSeriesGroup(unittest.TestCase):
     emg_di = emg_timeseries[1]
     emg_di.detect_emg_breaths(peak_set_name='breaths')
     emg_di.peaks['breaths'].detect_on_offset(
-        baseline=emg_di.y_baseline
+        baseline=emg_di['baseline']
     )
     def test_find_peaks(self):
         self.assertEqual(
@@ -266,7 +266,7 @@ class TestTimeSeriesGroup(unittest.TestCase):
         _, y_plot_data = axes[-1].lines[0].get_xydata().T
 
         np.testing.assert_array_equal(
-            self.emg_timeseries[-1].y_env, y_plot_data)
+            self.emg_timeseries[-1]['env'], y_plot_data)
 
     def test_plot_peaks(self):
         _, axes = plt.subplots(
