@@ -39,7 +39,8 @@ class TestTimeSeriesGroup(unittest.TestCase):
             3.0
         )
 
-    vent_timeseries.run('baseline', channel_idxs=[0], signal_type='raw')
+    vent_timeseries.run('baseline', channel_idxs=[0],
+                        signal_io=('raw', 'baseline'))
 
     # Find occlusion pressures
     vent_timeseries.find_occluded_breaths(
@@ -139,14 +140,14 @@ class TestTimeSeriesGroup(unittest.TestCase):
             len(self.y_emg[0, :])
         )
 
-    emg_timeseries.run('envelope', env_type='rms', signal_type='clean')
+    emg_timeseries.run('envelope', env_type='rms', signal_io=('clean', 'env'))
     def test_env_data_rms(self):
         self.assertEqual(
             len(self.emg_timeseries[0]['env']),
             len(self.y_emg[0, :])
         )
 
-    emg_timeseries.run('envelope', env_type='arv', signal_type='clean')
+    emg_timeseries.run('envelope', env_type='arv', signal_io=('clean', 'env'))
     def test_env_data_arv(self):
         self.assertEqual(
             len(self.emg_timeseries[0]['env']),
@@ -273,7 +274,7 @@ class TestTimeSeriesGroup(unittest.TestCase):
             nrows=1, ncols=3, figsize=(10, 6), sharex=True)
         self.emg_di.plot_curve_fits(axes=axes, peak_set_name='Pocc')
         self.emg_di.plot_aub(
-            axes=axes, signal_type='env', peak_set_name='Pocc')
+            axes=axes, signal_io=('env',), peak_set_name='Pocc')
         self.emg_timeseries.run('plot_peaks', peak_set_name='Pocc',
                                 axes=axes, channel_idxs=1, margin_s=0)
         self.emg_timeseries.run('plot_markers', peak_set_name='Pocc',
