@@ -144,7 +144,7 @@ class TimeSeries:
             try:
                 y_data = self['env']
             except KeyError as e:
-                raise KeyError('No envelope defined for this signal.', e)
+                raise KeyError('No envelope defined for this signal.') from e
         elif signal_type is None or signal_type in res_order:
             # If the signal type is one of the resolution order, find the data
             # or its next best option
@@ -173,17 +173,29 @@ class TimeSeries:
                 raise KeyError(f"Invalid signal type: {signal_type}")
         return y_data
 
-    def filter_emg(self, signal_type='raw', hp_cf=20.0, lp_cf=500.0, order=3):
+    def filter_emg(self, signal_io=('raw', 'filt'), hp_cf=20.0, lp_cf=500.0,
+                   order=3, **kwargs):
         """
         Filter raw EMG signal to remove baseline wander and high frequency
         components. See preprocessing.emg_bandpass_butter submodule.
-        -----------------------------------------------------------------------
+        The filtered signal is stored in self[signal_io[1]].
+
+        :param signal_io: tuple of strings, the first element is the input
+        the second element is the output signal type.
+        :type signal_io: tuple
+
         :returns: None
         :rtype: None
         """
-        y_data = self.signal_type_data(signal_type=signal_type)
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'filt')
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         # Eliminate the baseline wander from the data using a band-pass filter
-        self['filt'] = filt.emg_bandpass_butter(
+        self[signal_io[1]] = filt.emg_bandpass_butter(
             y_data,
             high_pass=hp_cf,
             low_pass=lp_cf,
@@ -238,17 +250,27 @@ class TimeSeries:
             overwrite=overwrite,
         )
 
-    def gating(self, signal_type='filt', ecg_peakset_name='ecg',
+    def gating(self, signal_io=('filt', 'clean'), ecg_peakset_name='ecg',
                gate_width_samples=None, fill_method=3, **kwargs):
         """
         Eliminate ECG artifacts from the provided signal based on the peak_idx
         of the provided PeakSet with `ecg_peakset_name`. See
         preprocessing.ecg_removal and pipelines.ecg_removal_gating submodules.
-        The cleaned signal is stored in self['clean'].
-        -----------------------------------------------------------------------
+        The cleaned signal is by stored in self['clean'].
+
+        :param signal_io: tuple of strings, the first element is the input
+        the second element is the output signal type.
+        :type signal_io: tuple
+
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'filt')
 
         if any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
                                          'bp_filter', 'overwrite']):
@@ -287,11 +309,11 @@ class TimeSeries:
             raise KeyError(
                 f"""Peakset {ecg_peakset_name} does not yet exist. First detect
                  ECG peaks before using gating.""")
-        y_data = self.signal_type_data(signal_type=signal_type)
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         ecg_peak_idxs = self.peaks[ecg_peakset_name]['peak_idx']
         if gate_width_samples is None:
             gate_width_samples = self.param['fs'] // 10
-        self['clean'] = ecg_removal_gating(
+        self[signal_io[1]] = ecg_removal_gating(
             y_data,
             ecg_peak_idxs,
             gate_width_samples,
@@ -299,16 +321,28 @@ class TimeSeries:
             method=fill_method,
         )
 
-    def wavelet_denoising(self, signal_type='filt', ecg_peakset_name='ecg',
-                          n=None, fixed_threshold=None, **kwargs):
+    def wavelet_denoising(
+            self, signal_io=('filt', 'clean'), ecg_peakset_name='ecg', n=None,
+            fixed_threshold=None, **kwargs):
         """
         Eliminate ECG artifacts from the provided signal. See
         preprocessing.wavelet_denoising submodules. The cleaned signal is
-        stored in self['clean'].
-        -----------------------------------------------------------------------
+        by default stored in self['clean'].
+
+        :param signal_io: tuple of strings, the first element is the input
+        the second element is the output signal type.
+        :type signal_io: tuple
+
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'filt')
+
         if any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
                                          'bp_filter', 'overwrite']):
             warnings.warn("\n".join(wrap(dedent("""
@@ -346,7 +380,7 @@ class TimeSeries:
             raise KeyError(
                 f"""ECG peakset {ecg_peakset_name}. First detect ECG peaks
                 before using wavelet denoising.""")
-        y_data = self.signal_type_data(signal_type=signal_type)
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         ecg_peak_idxs = self.peaks['ecg']['peak_idx']
         if n is None:
             n = int(np.log(self.param['fs']/20) // np.log(2))
@@ -354,20 +388,27 @@ class TimeSeries:
         if fixed_threshold is None:
             fixed_threshold = 4.5
 
-        self['clean'], *_ = ecg_rm.wavelet_denoising(
+        self[signal_io[1]], *_ = ecg_rm.wavelet_denoising(
             y_data, ecg_peak_idxs, fs=self.param['fs'], hard_thresholding=True,
             n=n, fixed_threshold=fixed_threshold, wavelet_type='db2')
 
-    def envelope(self, env_window=None, env_type=None, signal_type='clean',
-                 ci_alpha=None):
+    def envelope(self, env_window=None, env_type=None,
+                 signal_io=('clean', 'env'), ci_alpha=None, **kwargs):
         """
         Derive the moving envelope of the provided signal. See
-        preprocessing.envelope submodule. The envelope is stored in the
-        self['env'] attribute.
-        -----------------------------------------------------------------------
+        preprocessing.envelope submodule. The envelope is by default stored in
+        the self['env']. If ci_alpha is not None, the confidence interval is
+        stored in self['env_ci'].
+
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'env')
         if env_window is None:
             if 'fs' in self.param:
                 env_window = self.param['fs'] // 4
@@ -375,23 +416,24 @@ class TimeSeries:
                 raise ValueError(
                     'Evelope window and sampling rate are not defined.')
 
-        y_data = self.signal_type_data(signal_type=signal_type)
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         if env_type == 'rms' or env_type is None:
-            self['env'] = evl.full_rolling_rms(y_data, env_window)
+            self[signal_io[1]] = evl.full_rolling_rms(y_data, env_window)
             if ci_alpha is not None:
-                self['env_ci'] = evl.rolling_rms_ci(
+                self[signal_io[1] + '_ci'] = evl.rolling_rms_ci(
                     y_data, env_window, alpha=ci_alpha)
         elif env_type == 'arv':
-            self['env'] = evl.full_rolling_arv(y_data, env_window)
+            self[signal_io[1]] = evl.full_rolling_arv(y_data, env_window)
             if ci_alpha is not None:
-                self['env_ci'] = evl.rolling_arv_ci(
+                self[signal_io[1] + '_ci'] = evl.rolling_arv_ci(
                     y_data, env_window, alpha=ci_alpha)
         else:
             raise ValueError('Invalid envelope type')
 
-    def baseline(self, percentile=33, window_s=None, step_s=None,
-                 base_method='default', signal_type=None, augm_percentile=25,
-                 ma_window=None, perc_window=None):
+    def baseline(
+            self, percentile=33, window_s=None, step_s=None,
+            base_method='default', signal_io=(None, 'baseline'),
+            augm_percentile=25, ma_window=None, perc_window=None, **kwargs):
         """
         Derive the moving baseline of the provided signal. See
         postprocessing.baseline submodule. The baseline is stored in the
@@ -400,20 +442,27 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'baseline')
         window_s = window_s or int(7.5 * self.param.get('fs', 1))
         step_s = step_s or self.param.get('fs', 5) // 5
-        signal_type = signal_type or 'env'
+        if signal_io[0] is None:
+            signal_io = ('env', 'baseline')
 
-        y_baseline_data = self.signal_type_data(signal_type=signal_type)
+        y_baseline_data = self.signal_type_data(signal_type=signal_io[0])
         if base_method in ('default', 'moving_baseline'):
-            self['baseline'] = bl.moving_baseline(
+            self[signal_io[1]] = bl.moving_baseline(
                 y_baseline_data, window_s=window_s, step_s=step_s,
                 set_percentile=percentile)
         elif base_method == 'slopesum_baseline':
             if 'fs' not in self.param:
                 raise ValueError(
                     'Sampling rate is not defined.')
-            self['baseline'], _, _, _ = bl.slopesum_baseline(
+            self[signal_io[1]], _, _, _ = bl.slopesum_baseline(
                     y_baseline_data, window_s=window_s, step_s=step_s,
                     fs=self.param['fs'], set_percentile=percentile,
                     augm_percentile=augm_percentile, ma_window=ma_window,
@@ -531,7 +580,9 @@ class TimeSeries:
         :param include_aub: Include the area under the baseline in the
         time product
         :type include_aub: bool
-        :param signal_type: one of 'env', 'clean', 'filt', or 'raw'
+        :param signal_io: tuple of strings, the first element is the input
+        signal type.
+        :type signal_io: tuple
         :param aub_window_s: window length in samples in which the local
         extreme is sought.
         :param aub_window_s: int
@@ -611,8 +662,8 @@ class TimeSeries:
             self, peak_set_name, linked_timeseries, linked_peak_set_name,
             parameter_names, cutoff, skip_tests, verbose)
 
-    def plot_full(self, axes=None, signal_type=None, colors=None,
-                  baseline_bool=True, plot_ci=False):
+    def plot_full(self, axes=None, signal_io=(None,), colors=None,
+                  baseline_bool=True, plot_ci=False, **kwargs):
         """Plot the indicated signals in the provided axes. By default the most
         advanced signal type (envelope > clean > filt > raw) is plotted in the
         provided colours.
@@ -620,8 +671,9 @@ class TimeSeries:
         :param axes: matplotlib Axis object. If none provided, a new figure is
         created.
         :type axes: matplotlib.Axis
-        :param signal_type: the signal ('env', 'clean', 'filt', 'raw') to plot
-        :type signal_type: str
+        :param signal_io: tuple of strings, the first element is the input
+        signal type.
+        :type signal_io: tuple
         :param colors: list of colors to plot the 1) signal, 2) the baseline
         :type colors: list
         :param baseline_bool: plot the baseline
@@ -630,11 +682,17 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`,)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'env')
         axis = axes if axes is not None else plt.subplots()[1]
         colors = colors if colors is not None else [
             'tab:blue', 'tab:orange', 'tab:red', 'tab:cyan', 'tab:green']
 
-        y_data = self.signal_type_data(signal_type=signal_type)
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         axis.grid(True)
         axis.plot(self.t_data, y_data, color=colors[0])
         axis.set_ylabel(self.label + ' (' + self.y_units + ')')
@@ -718,9 +776,9 @@ class TimeSeries:
                 axis.plot(x_end, y_end, marker=end_marker, color=end_color,
                           linestyle='None')
 
-    def plot_peaks(self, peak_set_name, axes=None, signal_type=None,
+    def plot_peaks(self, peak_set_name, axes=None, signal_io=(None,),
                    margin_s=None, valid_only=False, colors=None,
-                   baseline_bool=True, plot_ci=False, ci_alpha=0.05):
+                   baseline_bool=True, plot_ci=False, **kwargs):
         """Plot the indicated peaks in the provided axes. By default the most
         advanced signal type (envelope > clean > filt > raw) is plotted in the
         provided colours.
@@ -730,8 +788,9 @@ class TimeSeries:
         :param axes: matplotlib Axes object. If none provided, a new figure is
         created.
         :type axes: matplotlib.Axes
-        :param signal_type: the signal ('env', 'clean', 'filt' 'raw') to plot
-        :type signal_type: str
+        :param signal_io: tuple of strings, the first element is the input
+        signal type.
+        :type signal_io: tuple
         :param margin_s: margins in samples plotted before the peak onset and
         after the peak offset
         :param valid_only: when True, only valid peaks are plotted.
@@ -744,6 +803,12 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`,)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'],)
         peak_set = self.peaks.get(peak_set_name)
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
@@ -758,8 +823,8 @@ class TimeSeries:
         axes = np.atleast_1d(axes)
         colors = colors if colors is not None else [
             'tab:blue', 'tab:orange', 'tab:red', 'tab:cyan', 'tab:green']
-        y_data = (peak_set.signal if signal_type is None
-                  else self.signal_type_data(signal_type=signal_type))
+        y_data = (peak_set.signal if signal_io[0] is None
+                  else self.signal_type_data(signal_type=signal_io[0]))
         m_s = margin_s if margin_s is not None else self.param['fs'] // 2
         ci = self['env_ci']
         for axis, x_start, x_end in zip(axes, start_idxs, end_idxs):
@@ -838,8 +903,8 @@ class TimeSeries:
                 axes[0].plot(peak_set.t_data[row.start_idx:row.end_idx],
                              row.bell_y_min + y_bell, color=color)
 
-    def plot_aub(self, peak_set_name, axes, signal_type, valid_only=False,
-                 colors=None):
+    def plot_aub(self, peak_set_name, axes, signal_io=None,
+                 valid_only=False, colors=None, **kwargs):
         """Plot the area under the baseline (AUB) for the peak set in the
         provided axes in the provided colours using the provided markers.
         -----------------------------------------------------------------------
@@ -858,6 +923,14 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`,)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'],)
+        elif signal_io is None:
+            raise ValueError('Signal type not provided. Use signal_io.')
         peak_set = self.peaks.get(peak_set_name)
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
@@ -868,8 +941,8 @@ class TimeSeries:
             raise KeyError("aub_y_ref not included in PeaksSet, area under the"
                            " baseline is not evaluated yet.")
 
-        y_data = (peak_set.signal if signal_type is None
-                  else self.signal_type_data(signal_type=signal_type))
+        y_data = (peak_set.signal if signal_io[0] is None
+                  else self.signal_type_data(signal_type=signal_io[0]))
 
         plot_peak_df = (peak_set.peak_df.loc[peak_set.peak_df['valid']]
                         if valid_only and 'valid' in peak_set.peak_df.columns
