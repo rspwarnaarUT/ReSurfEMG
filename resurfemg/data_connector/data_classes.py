@@ -579,7 +579,8 @@ class TimeSeries:
 
     def calculate_time_products(
             self, peak_set_name, include_aub=True, aub_window_s=None,
-            aub_reference_signal=None, parameter_name=None):
+            aub_reference_signal=None, parameter_name=None,
+            signal_io=('baseline',)):
         """
         Calculate the time product, i.e. area under the curve for a PeaksSet.
         The results are stored as
@@ -589,16 +590,16 @@ class TimeSeries:
         :param peak_set_name: PeaksSet name in self.peaks dict
         :type peak_set_name: str
         :param include_aub: Include the area under the baseline in the
-        time product
+            time product
         :type include_aub: bool
         :param signal_io: tuple of strings, the first element is the input
-        signal type.
+            baseline type.
         :type signal_io: tuple
         :param aub_window_s: window length in samples in which the local
-        extreme is sought.
+            extreme is sought.
         :param aub_window_s: int
         :param aub_reference_signal: Optional reference signal to find the
-        local extreme in, else the signal underlying the PeaksSet is taken.
+            local extreme in, else the signal underlying the PeaksSet is taken.
         :type aub_reference_signal: ~numpy.ndarray
         :param parameter_name: parameter name in Dataframe
         self.peaks[peak_set_name].peak_df
@@ -611,7 +612,7 @@ class TimeSeries:
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
 
-        if 'baseline' not in self._y_data:
+        if signal_io[0] not in self._y_data:
             if include_aub:
                 raise ValueError(
                     'Baseline in not yet defined, but is required to calculate'
@@ -622,7 +623,7 @@ class TimeSeries:
                     with reference to 0."""))))
                 baseline = np.zeros(peak_set.signal.shape)
         else:
-            baseline = self['baseline']
+            baseline = self[signal_io[0]]
 
         time_products = feat.time_product(
             signal=peak_set.signal, fs=self.param['fs'],
