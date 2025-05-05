@@ -589,17 +589,17 @@ class TimeSeries:
         -----------------------------------------------------------------------
         :param peak_set_name: PeaksSet name in self.peaks dict
         :type peak_set_name: str
-        :param include_aub: Include the area under the baseline in the
-            time product
+        :param include_aub: Include the area under the baseline in the time
+        product
         :type include_aub: bool
         :param signal_io: tuple of strings, the first element is the input
-            baseline type.
+        baseline type.
         :type signal_io: tuple
         :param aub_window_s: window length in samples in which the local
-            extreme is sought.
+        extreme is sought.
         :param aub_window_s: int
         :param aub_reference_signal: Optional reference signal to find the
-            local extreme in, else the signal underlying the PeaksSet is taken.
+        local extreme in, else the signal underlying the PeaksSet is taken.
         :type aub_reference_signal: ~numpy.ndarray
         :param parameter_name: parameter name in Dataframe
         self.peaks[peak_set_name].peak_df
