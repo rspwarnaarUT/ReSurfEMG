@@ -127,6 +127,15 @@ class TimeSeries:
         """
         self._y_data[key] = value
 
+    def __iter__(self):
+        """
+        Iterate over the signal data types in the _y_data dictionary.
+
+        :returns: iterator over the signal data types
+        :rtype: iterator
+        """
+        return iter(self._y_data)
+
     def signal_type_data(self, signal_type=None):
         """
         Automatically select the most advanced data type eligible for a
