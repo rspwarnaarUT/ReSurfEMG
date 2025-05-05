@@ -114,6 +114,12 @@ class TestTimeSeriesGroup(unittest.TestCase):
             len(self.y_emg[0, :])
         )
 
+    def test_to_numpy(self):
+        self.assertEqual(
+            len(self.emg_timeseries.to_numpy()),
+            len(self.y_emg)
+        )
+
     def test_time_data(self):
         self.assertEqual(
             len(self.emg_timeseries[0].t_data),
