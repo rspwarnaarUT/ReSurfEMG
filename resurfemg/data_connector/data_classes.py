@@ -109,7 +109,7 @@ class TimeSeries:
         :returns y_data: data of the selected signal type
         :rtype y_data: ~numpy.ndarray
         """
-        return self._y_data.get(key, None)
+        return self._y_data.get(key)
 
     def __setitem__(self, key, value):
         """
@@ -141,10 +141,10 @@ class TimeSeries:
         y_data = np.zeros(self['raw'].shape)
         res_order = ['env', 'clean', 'filt', 'raw']
         if signal_type == 'env':
-            try:
+            if 'env' in self._y_data:
                 y_data = self['env']
-            except KeyError as e:
-                raise KeyError('No envelope defined for this signal.') from e
+            else:
+                raise KeyError('No envelope defined for this signal.')
         elif signal_type is None or signal_type in res_order:
             # If the signal type is one of the resolution order, find the data
             # or its next best option
@@ -506,7 +506,7 @@ class TimeSeries:
 
         y_baseline = (self['baseline'] if self['baseline'] is not None
                       else np.zeros(self['env'].shape))
-        if self['baseline'] is None:
+        if 'baseline' not in self._y_data:
             warnings.warn("\n".join(wrap(dedent(
                 """EMG baseline not yet defined. Peak detection relative to
                 zero."""))))
@@ -600,7 +600,7 @@ class TimeSeries:
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
 
-        if self['baseline'] is None:
+        if 'baseline' not in self._y_data:
             if include_aub:
                 raise ValueError(
                     'Baseline in not yet defined, but is required to calculate'
@@ -1073,6 +1073,28 @@ class TimeSeriesGroup:
 
     def __iter__(self):
         return iter(self.channels)
+
+    def to_numpy(self, channel_idxs=None, signal_io=(None,)):
+        """Convert the TimeSeriesGroup to a numpy array. The output is a 2D
+        array with the shape (n_channels, n_samples). The signal type is
+        determined by the signal_io parameter. If signal_io is (None,), the
+        most advanced signal type (envelope > clean > filt > raw) is used.
+
+        :param channel_idxs: channel indices to convert to numpy array
+        :type channel_idxs: ~numpy.ndarray or int
+        :param signal_io: tuple of strings, the first element is the input
+        signal type.
+        :type signal_io: tuple
+
+        :returns: numpy array of the TimeSeriesGroup data
+        :rtype: ~numpy.ndarray
+        """
+        if channel_idxs is None:
+            channel_idxs = np.arange(self.param['n_channel'])
+        elif isinstance(channel_idxs, int):
+            channel_idxs = np.array([channel_idxs])
+        return np.array([self.channels[idx].signal_type_data(signal_io[0])
+                         for idx in channel_idxs])
 
     def run(self, method, channel_idxs=None, **kwargs):
         """Run a TimeSeries function on the provided channels in the group. The
