@@ -512,14 +512,14 @@ class TimeSeries:
         :rtype: None
         """
         if signal_io[0][0] not in self._y_data:
-            raise ValueError('Envelope not yet defined.')
+            raise ValueError(f'Envelope ({signal_io[0][0]}) not yet defined.')
 
         y_baseline = (self[signal_io[0][1]] if signal_io[0][1] in self._y_data
                       else np.zeros(self[signal_io[0][0]].shape))
         if signal_io[0][1] not in self._y_data:
             warnings.warn("\n".join(wrap(dedent(
-                """EMG baseline not yet defined. Peak detection relative to
-                zero."""))))
+                """EMG baseline ({signal_io[0][1]}) not yet defined. Peak
+                detection relative to zero."""))))
 
         if ((end_idx is not None and end_idx > len(self[signal_io[0][0]]))
                 or start_idx > len(self[signal_io[0][0]])):
