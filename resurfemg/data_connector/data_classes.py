@@ -190,7 +190,7 @@ class TimeSeries:
         The filtered signal is stored in self[signal_io[1]].
 
         :param signal_io: tuple of strings, the first element is the input
-        the second element is the output signal type.
+            the second element is the output signal type.
         :type signal_io: tuple
 
         :returns: None
@@ -268,7 +268,7 @@ class TimeSeries:
         The cleaned signal is by stored in self['clean'].
 
         :param signal_io: tuple of strings, the first element is the input
-        the second element is the output signal type.
+            the second element is the output signal type.
         :type signal_io: tuple
 
         :returns: None
@@ -339,7 +339,7 @@ class TimeSeries:
         by default stored in self['clean'].
 
         :param signal_io: tuple of strings, the first element is the input
-        the second element is the output signal type.
+            the second element is the output signal type.
         :type signal_io: tuple
 
         :returns: None
@@ -1092,7 +1092,7 @@ class TimeSeriesGroup:
         :param channel_idxs: channel indices to convert to numpy array
         :type channel_idxs: ~numpy.ndarray or int
         :param signal_io: tuple of strings, the first element is the input
-        signal type.
+            signal type.
         :type signal_io: tuple
 
         :returns: numpy array of the TimeSeriesGroup data
