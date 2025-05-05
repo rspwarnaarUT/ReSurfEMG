@@ -501,6 +501,7 @@ class TimeSeries:
         start_idx=0,
         end_idx=None,
         overwrite=False,
+        signal_io=(('env', 'baseline'),),
     ):
         """
         Find breath peaks in provided EMG envelope signal. See
@@ -510,32 +511,33 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
-        if 'env' not in self._y_data:
+        if signal_io[0][0] not in self._y_data:
             raise ValueError('Envelope not yet defined.')
 
-        y_baseline = (self['baseline'] if self['baseline'] is not None
-                      else np.zeros(self['env'].shape))
-        if 'baseline' not in self._y_data:
+        y_baseline = (self[signal_io[0][1]] if signal_io[0][1] in self._y_data
+                      else np.zeros(self[signal_io[0][0]].shape))
+        if signal_io[0][1] not in self._y_data:
             warnings.warn("\n".join(wrap(dedent(
                 """EMG baseline not yet defined. Peak detection relative to
                 zero."""))))
 
-        if ((end_idx is not None and end_idx > len(self['env']))
-                or start_idx > len(self['env'])):
+        if ((end_idx is not None and end_idx > len(self[signal_io[0][0]]))
+                or start_idx > len(self[signal_io[0][0]])):
             raise ValueError('Index out of range.')
 
-        end_idx = end_idx or len(self['env'])
+        end_idx = end_idx or len(self[signal_io[0][0]])
         if end_idx < start_idx:
             raise ValueError('End index smaller than start index.')
 
         min_peak_width_s = min_peak_width_s or self.param['fs'] // 5
 
         peak_idxs = evt.detect_emg_breaths(
-            self['env'][start_idx:end_idx], y_baseline[start_idx:end_idx],
-            threshold=threshold, prominence_factor=prominence_factor,
+            self[signal_io[0][0]][start_idx:end_idx],
+            y_baseline[start_idx:end_idx], threshold=threshold,
+            prominence_factor=prominence_factor,
             min_peak_width_s=min_peak_width_s)
         peak_idxs += start_idx
-        self.set_peaks(peak_idxs=peak_idxs, signal=self['env'],
+        self.set_peaks(peak_idxs=peak_idxs, signal=self[signal_io[0][0]],
                        peak_set_name=peak_set_name, overwrite=overwrite)
 
     def link_peak_set(self, peak_set_name, t_reference_peaks,
