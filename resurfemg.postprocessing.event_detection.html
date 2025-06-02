@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>resurfemg.postprocessing.event_detection module &#8212; resurfemg 1.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
     <script src="_static/documentation_options.js?v=1ed6394b"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="resurfemg.postprocessing.features module" href="resurfemg.postprocessing.features.html" />
@@ -51,7 +53,7 @@ Licensed under the Apache License, version 2.0. See LICENSE for details.</p>
 <p>This file contains functions to extract detect peak, on- and offset samples.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.postprocessing.event_detection.detect_emg_breaths">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.postprocessing.event_detection.</span></span><span class="sig-name descname"><span class="pre">detect_emg_breaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emg_env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emg_baseline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_peak_width_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.detect_emg_breaths" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">detect_emg_breaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emg_env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emg_baseline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_peak_width_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.detect_emg_breaths" title="Link to this definition">¶</a></dt>
 <dd><p>Identify the electrophysiological breaths from the EMG envelope and return
 an array breath peak indices. Input of baseline threshold, peak prominence
 factor, and minimal peak width are optional.
@@ -80,7 +82,7 @@ neighbouring samples
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.postprocessing.event_detection.detect_ventilator_breath">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.postprocessing.event_detection.</span></span><span class="sig-name descname"><span class="pre">detect_ventilator_breath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_vent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.detect_ventilator_breath" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">detect_ventilator_breath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_vent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.detect_ventilator_breath" title="Link to this definition">¶</a></dt>
 <dd><p>Identify the breaths from the ventilator signal and return an array
 of ventilator peak breath indices, in two steps of peak detection.
 Input of threshold and prominence values is optional.
@@ -114,7 +116,7 @@ neighbouring samples
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.postprocessing.event_detection.find_linked_peaks">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.postprocessing.event_detection.</span></span><span class="sig-name descname"><span class="pre">find_linked_peaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_1_t_peaks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_2_t_peaks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.find_linked_peaks" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">find_linked_peaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_1_t_peaks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_2_t_peaks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.find_linked_peaks" title="Link to this definition">¶</a></dt>
 <dd><p>Find the indices of the peaks in signal 2 closest to the time of the
 peaks in signal 1
 :param signal_1_t_peaks: list of timing of peaks in signal 1
@@ -134,7 +136,7 @@ peaks in signal 1</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.postprocessing.event_detection.find_occluded_breaths">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.postprocessing.event_detection.</span></span><span class="sig-name descname"><span class="pre">find_occluded_breaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_vent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_width_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.find_occluded_breaths" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">find_occluded_breaths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_vent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prominence_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_width_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.find_occluded_breaths" title="Link to this definition">¶</a></dt>
 <dd><p>Find end-expiratory occlusion manoeuvres (Pocc) in ventilator pressure
 timeseries data. start_idx and end_idx specify the samples to look into.
 The prominence_factor, min_width_s, and distance_s specify the minimal
@@ -169,7 +171,7 @@ distance to other peaks.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.postprocessing.event_detection.onoffpeak_baseline_crossing">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.postprocessing.event_detection.</span></span><span class="sig-name descname"><span class="pre">onoffpeak_baseline_crossing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.onoffpeak_baseline_crossing" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">onoffpeak_baseline_crossing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.onoffpeak_baseline_crossing" title="Link to this definition">¶</a></dt>
 <dd><p>This function calculates the peaks of each breath using the
 slopesum baseline of envelope data.
 —————————————————————————
@@ -215,7 +217,7 @@ slopesum baseline of envelope data.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.postprocessing.event_detection.onoffpeak_slope_extrapolation">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.postprocessing.event_detection.</span></span><span class="sig-name descname"><span class="pre">onoffpeak_slope_extrapolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slope_window_s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.onoffpeak_slope_extrapolation" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">onoffpeak_slope_extrapolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slope_window_s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.postprocessing.event_detection.onoffpeak_slope_extrapolation" title="Link to this definition">¶</a></dt>
 <dd><p>This function calculates the peak on- and offsets of a signal by extra-
 polating the maximum slopes in de slope_window_s to the zero crossings.
 The validity arrays provide feedback on the validity of the detected on-
@@ -274,6 +276,20 @@ to consider for detecting the local maximum slope
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/Logo_rond_tekst.svg" alt="Logo of resurfemg"/>
+            </a></p>
+<h3><a href="index.html">Table of Contents</a></h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">resurfemg</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="resurfemg.html">resurfemg package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developer’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="medical-professionals.html">Medical Professional Documentation</a></li>
+</ul>
+
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>

@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>resurfemg.helper_functions.math_operations module &#8212; resurfemg 1.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
     <script src="_static/documentation_options.js?v=1ed6394b"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="resurfemg.helper_functions.visualization module" href="resurfemg.helper_functions.visualization.html" />
@@ -52,7 +54,7 @@ Licensed under the Apache License, version 2.0. See LICENSE for details.</p>
 ReSurfEMG</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.Range">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">Range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.Range" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.Range" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RangeBase</span></code></p>
 <section id="utility-class-for-working-with-ranges-intervals">
 <h2>Utility class for working with ranges (intervals).<a class="headerlink" href="#utility-class-for-working-with-ranges-intervals" title="Link to this heading">¶</a></h2>
@@ -131,7 +133,7 @@ to this range’s end</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.bell_curve">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">bell_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.bell_curve" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">bell_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.bell_curve" title="Link to this definition">¶</a></dt>
 <dd><p>This function calculates a bell curve on the samples of <cite>x</cite>, shifted by
 b, amplified by a for a standard amplitude of 1.
 —————————————————————————
@@ -155,7 +157,7 @@ b, amplified by a for a standard amplitude of 1.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.delay_embedding">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">delay_embedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.delay_embedding" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">delay_embedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.delay_embedding" title="Link to this definition">¶</a></dt>
 <dd><p>The following code is adapted from openly licensed code written by
 Christopher Schölzel in his package nolds (NOnLinear measures for Dynamical
 Systems).It performs a time-delay embedding of a time series
@@ -178,7 +180,7 @@ Systems).It performs a time-delay embedding of a time series
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.derivative">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.derivative" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.derivative" title="Link to this definition">¶</a></dt>
 <dd><p>This function calculates the first derivative of a signal. If
 window_s is given, the signal is smoothed before derivative calculation.
 —————————————————————————
@@ -200,7 +202,7 @@ window_s is given, the signal is smoothed before derivative calculation.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.get_dict_key_where_value">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">get_dict_key_where_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dictionary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.get_dict_key_where_value" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_dict_key_where_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dictionary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.get_dict_key_where_value" title="Link to this definition">¶</a></dt>
 <dd><p>This function returns the key of a dictionary where the value matches
 the input value.
 —————————————————————————
@@ -220,7 +222,7 @@ the input value.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.intersections">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">intersections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.intersections" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">intersections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.intersections" title="Link to this definition">¶</a></dt>
 <dd><p>This function works over two arrays, <cite>left</cite> and
 <cite>right</cite>, and allows a picking based on intersections.  It
 only takes ranges on the left that intersect ranges on the right.
@@ -241,7 +243,7 @@ only takes ranges on the left that intersect ranges on the right.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.merge">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.merge" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.merge" title="Link to this definition">¶</a></dt>
 <dd><section id="merge-two-lists-based-linear-order">
 <h2>Merge two lists based linear order.<a class="headerlink" href="#merge-two-lists-based-linear-order" title="Link to this heading">¶</a></h2>
 <dl class="field-list simple">
@@ -269,7 +271,7 @@ only takes ranges on the left that intersect ranges on the right.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.ranges_of">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">ranges_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.ranges_of" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">ranges_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.ranges_of" title="Link to this definition">¶</a></dt>
 <dd><p>This function is made to work with <a class="reference internal" href="#resurfemg.helper_functions.math_operations.Range" title="resurfemg.helper_functions.math_operations.Range"><code class="xref py py-class docutils literal notranslate"><span class="pre">Range</span></code></a> class objects, such
 that is selects ranges and returns tuples of boundaries.
 —————————————————————————
@@ -287,7 +289,7 @@ that is selects ranges and returns tuples of boundaries.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.raw_overlap_percent">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">raw_overlap_percent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.raw_overlap_percent" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">raw_overlap_percent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.raw_overlap_percent" title="Link to this definition">¶</a></dt>
 <dd><p>This function takes two binary 0 or 1 signal arrays and gives
 the percentage of overlap.
 —————————————————————————
@@ -307,7 +309,7 @@ the percentage of overlap.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.running_smoother">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">running_smoother</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.running_smoother" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">running_smoother</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.running_smoother" title="Link to this definition">¶</a></dt>
 <dd><section id="this-is-the-smoother-to-use-in-time-calculations">
 <h2>This is the smoother to use in time calculations<a class="headerlink" href="#this-is-the-smoother-to-use-in-time-calculations" title="Link to this heading">¶</a></h2>
 <dl class="field-list simple">
@@ -329,7 +331,7 @@ the percentage of overlap.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.save_preprocessed">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">save_preprocessed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.save_preprocessed" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">save_preprocessed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.save_preprocessed" title="Link to this definition">¶</a></dt>
 <dd><p>This function is written to be called by the cli module.
 It stores arrays in a directory.
 —————————————————————————
@@ -351,7 +353,7 @@ It stores arrays in a directory.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.scale_arrays">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">scale_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.scale_arrays" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">scale_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.scale_arrays" title="Link to this definition">¶</a></dt>
 <dd><p>This function will scale all arrays along the vertical axis to have an
 absolute maximum value of the maximum parameter
 —————————————————————————
@@ -373,7 +375,7 @@ absolute maximum value of the maximum parameter
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.slices_jump_slider">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">slices_jump_slider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jump</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.slices_jump_slider" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">slices_jump_slider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jump</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.slices_jump_slider" title="Link to this definition">¶</a></dt>
 <dd><p>This function produces continuous sequential slices over an
 array of a certain length spaced out by a ‘jump’.
 The function yields, does not return these slices.
@@ -396,7 +398,7 @@ The function yields, does not return these slices.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.slices_slider">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">slices_slider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_len</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.slices_slider" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">slices_slider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_len</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.slices_slider" title="Link to this definition">¶</a></dt>
 <dd><p>This function produces continuous sequential slices over an
 array of a certain length.  The inputs are the following -
 <cite>array_sample</cite>, the signal and <cite>slice_len</cite> - the
@@ -419,7 +421,7 @@ not return these slices.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.helper_functions.math_operations.zero_one_for_jumps_base">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.helper_functions.math_operations.</span></span><span class="sig-name descname"><span class="pre">zero_one_for_jumps_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cut_off</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.zero_one_for_jumps_base" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">zero_one_for_jumps_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cut_off</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.helper_functions.math_operations.zero_one_for_jumps_base" title="Link to this definition">¶</a></dt>
 <dd><p>This function takes an array and makes it binary (0, 1) based
 on a cut-off value.
 —————————————————————————
@@ -446,6 +448,20 @@ on a cut-off value.
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/Logo_rond_tekst.svg" alt="Logo of resurfemg"/>
+            </a></p>
+<h3><a href="index.html">Table of Contents</a></h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">resurfemg</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="resurfemg.html">resurfemg package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developer’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="medical-professionals.html">Medical Professional Documentation</a></li>
+</ul>
+
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>

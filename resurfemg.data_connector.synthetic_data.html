@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>resurfemg.data_connector.synthetic_data module &#8212; resurfemg 1.0.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
     <script src="_static/documentation_options.js?v=1ed6394b"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="resurfemg.data_connector.tmsisdk_lite module" href="resurfemg.data_connector.tmsisdk_lite.html" />
@@ -51,7 +53,7 @@ Licensed under the Apache License, version 2.0. See LICENSE for details.</p>
 <p>This file contains methods to create synthetic data with several methods.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.data_connector.synthetic_data.respiratory_pattern_generator">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.synthetic_data.</span></span><span class="sig-name descname"><span class="pre">respiratory_pattern_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">420</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">22</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ie_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_p_occs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.respiratory_pattern_generator" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">respiratory_pattern_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">420</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">22</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ie_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_p_occs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.respiratory_pattern_generator" title="Link to this definition">¶</a></dt>
 <dd><p>This function simulates an on/off respiratory muscle activiation pattern
 for generating a synthetic EMG.
 —————————————————————————
@@ -78,7 +80,7 @@ pattern.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.data_connector.synthetic_data.simulate_emg">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.synthetic_data.</span></span><span class="sig-name descname"><span class="pre">simulate_emg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">muscle_activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_emg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emg_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drift_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.simulate_emg" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">simulate_emg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">muscle_activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_emg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emg_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drift_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.simulate_emg" title="Link to this definition">¶</a></dt>
 <dd><p>This function simulates an surface respiratory emg based on the provided
 <cite>muscle_activation</cite> and adds noise and drift to the signal. No ecg
 component is included, but can be added later.
@@ -103,7 +105,7 @@ component is included, but can be added later.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.data_connector.synthetic_data.simulate_muscle_dynamics">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.synthetic_data.</span></span><span class="sig-name descname"><span class="pre">simulate_muscle_dynamics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_mus_up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_mus_down</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.simulate_muscle_dynamics" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">simulate_muscle_dynamics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_mus_up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_mus_down</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.simulate_muscle_dynamics" title="Link to this definition">¶</a></dt>
 <dd><p>This function simulates an respiratory muscle activation dynamics for
 generating a synthetic EMG.
 —————————————————————————
@@ -127,7 +129,7 @@ generating a synthetic EMG.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="resurfemg.data_connector.synthetic_data.simulate_ventilator_data">
-<span class="sig-prename descclassname"><span class="pre">resurfemg.data_connector.synthetic_data.</span></span><span class="sig-name descname"><span class="pre">simulate_ventilator_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_mus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_vent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_occ_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.simulate_ventilator_data" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">simulate_ventilator_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_mus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_vent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_occ_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#resurfemg.data_connector.synthetic_data.simulate_ventilator_data" title="Link to this definition">¶</a></dt>
 <dd><p>This function simulates ventilator data with occlusion manouevers based on
 the provided <cite>p_mus</cite> and adds noise to the signal.
 —————————————————————————
@@ -156,6 +158,20 @@ the provided <cite>p_mus</cite> and adds noise to the signal.
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/Logo_rond_tekst.svg" alt="Logo of resurfemg"/>
+            </a></p>
+<h3><a href="index.html">Table of Contents</a></h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">resurfemg</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="resurfemg.html">resurfemg package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developer’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="medical-professionals.html">Medical Professional Documentation</a></li>
+</ul>
+
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
