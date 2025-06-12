@@ -90,23 +90,25 @@ class Config:
         self.force = force
         self.created_config = False
         # In the ResurfEMG project, the test data is stored in ./test_data
-        test_path = os.path.join(self.repo_root, 'test_data')
-        if len(glob.glob(test_path)) == 1:
-            test_data_path = os.path.join(self.repo_root, 'test_data')
-        else:
-            test_data_path = '{}/test_data'
-        if self.repo_root is None:
-            self.default_locations = (
-                './config.json',
-                os.path.expanduser('~/.resurfemg/config.json'),
-                '/etc/resurfemg/config.json',
-            )
-        else:
+        if self.repo_root is not None:
+            test_path = os.path.join(self.repo_root, 'test_data')
+            if len(glob.glob(test_path)) == 1:
+                test_data_path = os.path.join(self.repo_root, 'test_data')
+            else:
+                test_data_path = '{}/test_data'
+
             self.default_locations = (
                 './config.json',
                 os.path.expanduser('~/.resurfemg/config.json'),
                 '/etc/resurfemg/config.json',
                 os.path.join(self.repo_root, 'config.json'),
+            )
+        else:
+            test_data_path = '{}/test_data'
+            self.default_locations = (
+                './config.json',
+                os.path.expanduser('~/.resurfemg/config.json'),
+                '/etc/resurfemg/config.json',
             )
         self.default_layout = {
                 'root_data': '{}/not_pushed',
@@ -301,6 +303,15 @@ class Config:
                     if key != 'root_data':
                         print(f' {key: <15}\t{value: <50}')
         return value
+
+    def get_config(self):
+        """
+        This function returns the configuration file.
+        -----------------------------------------------------------------------
+        :return: The configuration file.
+        :rtype: dict
+        """
+        return self._loaded
 
 
 def hash_it_up_right_all(origin_directory, file_extension):

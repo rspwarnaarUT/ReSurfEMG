@@ -93,7 +93,7 @@ def initialize_emg_tests(
     if parameter_names is None:
         parameter_names = dict()
 
-    for parameter in ['ecg', 'time_product']:
+    for parameter in ['ecg', 'time_product', 'baseline', 'ecg']:
         if parameter not in parameter_names:
             parameter_names[parameter] = parameter
 
@@ -115,13 +115,15 @@ def initialize_emg_tests(
 
 
 def test_interpeak_distance(
-        timeseries, peak_set, quality_outcomes_df, n_peaks, cutoff):
+        timeseries, peak_set, quality_outcomes_df, n_peaks, cutoff,
+        parameter_names):
     """Test interpeak distance. See TimeSeries.test_emg_quality method in
     resurfemg.data_connector.data_classes for more information."""
-    if 'ecg' not in timeseries.peaks:
+    if parameter_names['ecg'] not in timeseries.peaks:
         raise ValueError('ECG peaks not determined, but required for interpeak'
                          + ' distance evaluation.')
-    ecg_peaks = timeseries.peaks['ecg'].peak_df['peak_idx'].to_numpy()
+    ecg_peaks = timeseries.peaks[parameter_names['ecg']].peak_df[
+        'peak_idx'].to_numpy()
     valid_interpeak = qa.interpeak_dist(
         ecg_peak_idxs=ecg_peaks,
         emg_peak_idxs=peak_set.peak_df['peak_idx'].to_numpy(),
@@ -133,16 +135,17 @@ def test_interpeak_distance(
 
 
 def test_snr(
-        timeseries, peak_set, quality_outcomes_df, quality_values_df, cutoff):
+        timeseries, peak_set, quality_outcomes_df, quality_values_df, cutoff,
+        parameter_names):
     """Test signal-to-noise ratio. See TimeSeries.test_emg_quality method in
     resurfemg.data_connector.data_classes for more information."""
-    if timeseries.baseline is None:
+    if parameter_names['baseline'] not in timeseries._y_data:
         raise ValueError('Baseline not determined, but required for '
                          + ' SNR evaluaton.')
     snr_peaks = qa.snr_pseudo(
         src_signal=peak_set.signal,
         peaks=peak_set.peak_df['peak_idx'].to_numpy(),
-        baseline=timeseries.y_baseline,
+        baseline=timeseries[parameter_names['baseline']],
         fs=timeseries.param['fs'],
     )
     quality_values_df['snr'] = snr_peaks
@@ -152,10 +155,11 @@ def test_snr(
 
 
 def test_aub(
-        timeseries, peak_set, quality_outcomes_df, quality_values_df, cutoff):
+        timeseries, peak_set, quality_outcomes_df, quality_values_df, cutoff,
+        parameter_names):
     """Test percentage area under the baselineSee TimeSeries.test_emg_quality
     method in resurfemg.data_connector.data_classes for more information."""
-    if timeseries.baseline is None:
+    if parameter_names['baseline'] not in timeseries._y_data:
         raise ValueError('Baseline not determined, but required for '
                          + ' area under the baseline (AUB) evaluaton.')
     if 'start_idx' not in peak_set.peak_df.columns:
@@ -170,7 +174,7 @@ def test_aub(
         peak_idxs=peak_set.peak_df['peak_idx'].to_numpy(),
         start_idxs=peak_set.peak_df['start_idx'].to_numpy(),
         end_idxs=peak_set.peak_df['end_idx'].to_numpy(),
-        baseline=timeseries.y_baseline,
+        baseline=timeseries[parameter_names['baseline']],
         aub_window_s=None,
         ref_signal=None,
         aub_threshold=cutoff['aub'],
@@ -356,7 +360,7 @@ def test_pocc_upslope(
         raise ValueError('PTPs not determined, but required for Pocc upslope '
                          + 'evaluaton.')
     valid_poccs, criteria_matrix = qa.pocc_quality(
-        p_vent_signal=timeseries.y_raw,
+        p_vent_signal=timeseries['raw'],
         pocc_peaks=peak_set.peak_df['peak_idx'].to_numpy(),
         pocc_ends=peak_set.peak_df['end_idx'].to_numpy(),
         ptp_occs=peak_set.peak_df[
@@ -520,15 +524,18 @@ def test_emg_quality(self, peak_set_name, cutoff=None, skip_tests=None,
 
     if 'interpeak_dist' not in skip_tests:
         quality_outcomes_df = test_interpeak_distance(
-            self, peak_set, quality_outcomes_df, n_peaks, cutoff)
+            self, peak_set, quality_outcomes_df, n_peaks, cutoff,
+            parameter_names)
 
     if 'snr' not in skip_tests:
         quality_outcomes_df = test_snr(
-            self, peak_set, quality_outcomes_df, quality_values_df, cutoff)
+            self, peak_set, quality_outcomes_df, quality_values_df, cutoff,
+            parameter_names)
 
     if 'aub' not in skip_tests:
         quality_outcomes_df, quality_values_df = test_aub(
-            self, peak_set, quality_outcomes_df, quality_values_df, cutoff)
+            self, peak_set, quality_outcomes_df, quality_values_df, cutoff,
+            parameter_names)
 
     if 'curve_fit' not in skip_tests:
         quality_outcomes_df, quality_values_df, peak_set = \

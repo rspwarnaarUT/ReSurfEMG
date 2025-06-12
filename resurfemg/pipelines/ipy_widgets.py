@@ -105,7 +105,7 @@ def file_select(
 
                 filter_files = files[np.all(np.array(bool_list), 0)]
 
-            options = list(set(filter_files[dict_key].values))
+            options = list(np.unique(filter_files[dict_key].values))
             options.sort()
 
             if len(options) > 0:

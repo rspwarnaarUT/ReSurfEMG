@@ -7,7 +7,7 @@ automation.
 """
 
 import warnings
-
+from textwrap import wrap, dedent
 import numpy as np
 import scipy
 import matplotlib.pyplot as plt
@@ -28,7 +28,16 @@ from resurfemg.data_connector.peakset_class import PeaksSet
 
 class TimeSeries:
     """
-    Data class to store, process, and plot single channel time series data
+    Data class to store, process, and plot single channel time series data.
+    Data is stored in the _y_data dictionary, which can be accessed using the
+    TimeSeries[`signal_type`]. The default signal types are:
+    'raw', 'filt', 'clean', 'env', 'env_ci', and 'baseline'.
+    Defined properties:
+    - t_data: time axis data
+    - label: channel label
+    - y_units: channel signal units
+    - param: dictionary of channel parameters (fs, n_samp)
+    - peaks: dictionary of PeaksSet objects
     """
 
     def __init__(self, y_raw, t_data=None, fs=None, label=None, units=None):
@@ -56,14 +65,10 @@ class TimeSeries:
             self.param['n_samp'] = y_raw.shape[0]
         else:
             raise ValueError("Invalid y_raw dimensions")
-        self.y_raw = y_raw.flatten()
-
-        self.peaks = dict()
-        self.y_filt = None
-        self.y_clean = None
-        self.y_env = None
-        self.y_env_ci = None
-        self.y_baseline = None
+        self._y_data = {
+            'raw': y_raw,
+        }
+        self.peaks = {}
 
         if t_data is None and fs is None:
             self.t_data = np.arange(self.param['n_samp'])
@@ -80,61 +85,143 @@ class TimeSeries:
         self.label = label or ''
         self.y_units = units or '?'
 
+    def __getattr__(self, item):
+        default_y_data = ['raw', 'filt', 'clean', 'env', 'env_ci', 'baseline']
+        if item.replace('y_', '') in default_y_data:
+            key = item.replace('y_', '')
+            warnings.warn("\n".join(wrap(dedent(
+                f"""
+                The attribute y_{key} is deprecated to allow for more, and
+                custom, signal types. Use '{self.__class__.__name__}'[{key}]
+                instead."""))), FutureWarning)
+            return self._y_data.get(key, None)
+        return object.__getattr__(self, item)
+
+    def __getitem__(self, key):
+        """
+        Get the signal data of the requested type. The default signal types
+        are: 'raw', 'filt', 'clean', 'env', 'env_ci', and 'baseline'.
+        -----------------------------------------------------------------------
+        :param key: one of 'raw', 'filt', 'clean', 'env', 'env_ci', 'baseline'
+        or a custom signal type
+        :type key: str
+
+        :returns y_data: data of the selected signal type
+        :rtype y_data: ~numpy.ndarray
+        """
+        return self._y_data.get(key)
+
+    def __setitem__(self, key, value):
+        """
+        Set the signal data of the requested type. The default signal types
+        are: 'raw', 'filt', 'clean', 'env', 'env_ci', and 'baseline'.
+        -----------------------------------------------------------------------
+        :param key: one of 'raw', 'filt', 'clean', 'env', 'env_ci', 'baseline'
+        or a custom signal type
+        :type key: str
+        :param value: data of the selected signal type
+        :type value: ~numpy.ndarray
+
+        :returns: None
+        :rtype: None
+        """
+        self._y_data[key] = value
+
+    def __iter__(self):
+        """
+        Iterate over the signal data types in the _y_data dictionary.
+
+        :returns: iterator over the signal data types
+        :rtype: iterator
+        """
+        return iter(self._y_data)
+
     def signal_type_data(self, signal_type=None):
         """
         Automatically select the most advanced data type eligible for a
-        subprocess ('env' {=envelope} > 'clean' > 'raw')
+        subprocess ('env' {=envelope} > 'clean' > 'filt' > 'raw')
         -----------------------------------------------------------------------
-        :param signal_type: one of 'env', 'clean', or 'raw'
+        :param signal_type: one of 'env', 'clean', 'filt', or 'raw'
         :type signal_type: str
 
         :returns y_data: data of the selected signal type
         :rtype y_data: ~numpy.ndarray
         """
-        y_data = np.zeros(self.y_raw.shape)
-        signal_map = {
-            None: self.y_env if self.y_env is not None else (
-                self.y_clean if self.y_clean is not None else (
-                    self.y_filt if self.y_filt is not None else self.y_raw)),
-            'env': self.y_env,
-            'clean': self.y_clean if self.y_clean is not None else (
-                self.y_filt if self.y_filt is not None else self.y_raw),
-            'filt': self.y_filt if self.y_filt is not None else self.y_raw,
-            'raw': self.y_raw
-        }
-        y_data = signal_map.get(signal_type, self.y_raw)
-        if signal_type == 'env' and self.y_env is None:
-            raise IndexError('No envelope defined for this signal.')
-        if signal_type == 'clean' and self.y_clean is None:
-            warnings.warn(
-                "Warning: No clean data available, using raw data instead.")
-        if signal_type == 'filt' and self.y_filt is None:
-            warnings.warn(
-                "Warning: No filtered data available, using raw data instead.")
-
+        y_data = np.zeros(self['raw'].shape)
+        res_order = ['env', 'clean', 'filt', 'raw']
+        if signal_type == 'env':
+            if 'env' in self._y_data:
+                y_data = self['env']
+            else:
+                raise KeyError('No envelope defined for this signal.')
+        elif signal_type is None or signal_type in res_order:
+            # If the signal type is one of the resolution order, find the data
+            # or its next best option
+            search_signal_type = signal_type or 'env'
+            start_idx = res_order.index(search_signal_type)
+            _res_order = res_order[start_idx:]
+            for idx, option in enumerate(_res_order):
+                if option in self._y_data:
+                    y_data = self[option]
+                    find_idx = idx
+                    break
+            else:
+                raise KeyError(
+                    f"Invalid signal type: {signal_type}"
+                    f" or no data available for {signal_type}.")
+            if signal_type is not None and find_idx > 0:
+                warnings.warn("\n".join(wrap(dedent(
+                     f"""Warning: No {signal_type} data available, using raw
+                     data instead."""))))
+        else:
+            # If the signal type is not in the resolution order, find the data
+            # or its next best option
+            if signal_type in self._y_data:
+                y_data = self[signal_type]
+            else:
+                raise KeyError(f"Invalid signal type: {signal_type}")
         return y_data
 
-    def filter_emg(self, signal_type='raw', hp_cf=20.0, lp_cf=500.0, order=3):
+    def filter_emg(self, signal_io=('raw', 'filt'), hp_cf=20.0, lp_cf=500.0,
+                   order=3, **kwargs):
         """
         Filter raw EMG signal to remove baseline wander and high frequency
         components. See preprocessing.emg_bandpass_butter submodule.
-        -----------------------------------------------------------------------
+        The filtered signal is stored in self[signal_io[1]].
+
+        :param signal_io: tuple of strings, the first element is the input
+            the second element is the output signal type.
+        :type signal_io: tuple
+
         :returns: None
         :rtype: None
         """
-        y_data = self.signal_type_data(signal_type=signal_type)
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'filt')
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         # Eliminate the baseline wander from the data using a band-pass filter
-        self.y_filt = filt.emg_bandpass_butter(
+        self[signal_io[1]] = filt.emg_bandpass_butter(
             y_data,
             high_pass=hp_cf,
             low_pass=lp_cf,
             fs_emg=self.param['fs'],
             order=order)
 
-    def get_ecg_peaks(self, ecg_raw=None, bp_filter=True, overwrite=False):
+    def get_ecg_peaks(
+            self, ecg_raw=None, bp_filter=True, overwrite=False, name='ecg'):
         """
         Detect ECG peaks in the provided signal. See preprocessing.ecg_removal
-        submodule.
+        submodule. ECG peaks are stored in the self.peaks dict under the key
+        `name`. When no ECG channel is provided, the raw signal of the current
+        TimeSeries object is used.
+        When running get_ecg_peaks on a EmgDataGroup and no ECG channel or
+        ecg_raw is provided, EmgDataGroup.ecg_idx is used to detect the QRS
+        peak locations. ecg_idx is auto-detected from the labels on
+        EmgDataGroup initialization, or can be set with the set_ecg_idx method.
         -----------------------------------------------------------------------
         :param ecg_raw: ECG signal, if None, the raw signal is used
         :type ecg_raw: ~numpy.ndarray
@@ -142,53 +229,100 @@ class TimeSeries:
         :type bp_filter: bool
         :overwrite: Overwrite existing peaks
         :type overwrite: bool
+        :param name: Name of the peak set in the self.peaks dict
+        :type name: str
 
         :returns: None
         :rtype: None
         """
-        if 'ecg' in self.peaks and not overwrite:
+        if name in self.peaks and not overwrite:
             raise UserWarning('ECG peaks already detected. Use overwrite=True')
-        else:
-            if ecg_raw is None:
-                lp_cf = min([500.0, 0.95 * self.param['fs'] / 2])
-                ecg_raw = filt.emg_bandpass_butter(
-                    self.y_raw,
-                    high_pass=1,
-                    low_pass=lp_cf,
-                    fs_emg=self.param['fs'])
 
-            ecg_peak_idxs = ecg_rm.detect_ecg_peaks(
-                ecg_raw=ecg_raw,
-                fs=self.param['fs'],
-                bp_filter=bp_filter,
-            )
+        if ecg_raw is None:
+            lp_cf = min([500.0, 0.95 * self.param['fs'] / 2])
+            ecg_raw = filt.emg_bandpass_butter(
+                self['raw'],
+                high_pass=1,
+                low_pass=lp_cf,
+                fs_emg=self.param['fs'])
 
-            self.set_peaks(
-                signal=ecg_raw,
-                peak_idxs=ecg_peak_idxs,
-                peak_set_name='ecg',
-            )
+        ecg_peak_idxs = ecg_rm.detect_ecg_peaks(
+            ecg_raw=ecg_raw,
+            fs=self.param['fs'],
+            bp_filter=bp_filter,
+        )
 
-    def gating(self, signal_type='filt', gate_width_samples=None,
-               ecg_peak_idxs=None, ecg_raw=None, bp_filter=True, fill_method=3,
-               overwrite=False):
+        self.set_peaks(
+            signal=ecg_raw,
+            peak_idxs=ecg_peak_idxs,
+            peak_set_name=name,
+            overwrite=overwrite,
+        )
+
+    def gating(self, signal_io=('filt', 'clean'), ecg_peakset_name='ecg',
+               gate_width_samples=None, fill_method=3, **kwargs):
         """
-        Eliminate ECG artifacts from the provided signal. See
+        Eliminate ECG artifacts from the provided signal based on the peak_idx
+        of the provided PeakSet with `ecg_peakset_name`. See
         preprocessing.ecg_removal and pipelines.ecg_removal_gating submodules.
-        -----------------------------------------------------------------------
+        The cleaned signal is by stored in self['clean'].
+
+        :param signal_io: tuple of strings, the first element is the input
+            the second element is the output signal type.
+        :type signal_io: tuple
+
         :returns: None
         :rtype: None
         """
-        y_data = self.signal_type_data(signal_type=signal_type)
-        if ecg_peak_idxs is None:
-            self.get_ecg_peaks(
-                ecg_raw=ecg_raw, bp_filter=bp_filter, overwrite=overwrite)
-            ecg_peak_idxs = self.peaks['ecg']['peak_idx']
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'filt')
 
+        if any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
+                                         'bp_filter', 'overwrite']):
+            warnings.warn("\n".join(wrap(dedent("""
+                The kwargs 'ecg_peak_idxs', 'ecg_raw', 'bp_filter', 'overwrite'
+                will be removed in future versions of ReSurfEMG:
+                ECG removal will be split in QRS detection with
+                `get_ecg_peaks` and ECG elimination (`gating`/
+                `wavelet_denoising`). Alternatively, create an ECG peakset with
+                `set_peaks` and use `gating` or `wavelet_denoising` directly.
+                """))), FutureWarning)
+            ecg_peak_idxs = kwargs.get('ecg_peak_idxs', None)
+            bp_filter = kwargs.get('bp_filter', True)
+            overwrite = kwargs.get('overwrite', False)
+            if ecg_peak_idxs is None:
+                ecg_raw = kwargs.get('ecg_raw', None)
+                self.get_ecg_peaks(
+                    ecg_raw=ecg_raw,
+                    bp_filter=bp_filter,
+                    overwrite=overwrite,
+                    name=ecg_peakset_name)
+            else:
+                if ecg_peakset_name not in self.peaks and not overwrite:
+                    raise UserWarning(
+                        'ECG peaks already detected. Use overwrite=True')
+                ecg_raw = (
+                    kwargs.get('ecg_raw',
+                               self.signal_type_data(signal_type='raw')))
+                self.set_peaks(
+                    signal=ecg_raw,
+                    peak_idxs=ecg_peak_idxs,
+                    peak_set_name=ecg_peakset_name,
+                    overwrite=overwrite,
+                )
+        if ecg_peakset_name not in self.peaks:
+            raise KeyError(
+                f"""Peakset {ecg_peakset_name} does not yet exist. First detect
+                 ECG peaks before using gating.""")
+        y_data = self.signal_type_data(signal_type=signal_io[0])
+        ecg_peak_idxs = self.peaks[ecg_peakset_name]['peak_idx']
         if gate_width_samples is None:
             gate_width_samples = self.param['fs'] // 10
-
-        self.y_clean = ecg_removal_gating(
+        self[signal_io[1]] = ecg_removal_gating(
             y_data,
             ecg_peak_idxs,
             gate_width_samples,
@@ -196,41 +330,94 @@ class TimeSeries:
             method=fill_method,
         )
 
-    def wavelet_denoising(self, signal_type='filt', ecg_peak_idxs=None,
-                          ecg_raw=None, n=None, fixed_threshold=None,
-                          bp_filter=True, overwrite=False):
+    def wavelet_denoising(
+            self, signal_io=('filt', 'clean'), ecg_peakset_name='ecg', n=None,
+            fixed_threshold=None, **kwargs):
         """
         Eliminate ECG artifacts from the provided signal. See
-        preprocessing.wavelet_denoising submodules.
-        -----------------------------------------------------------------------
+        preprocessing.wavelet_denoising submodules. The cleaned signal is
+        by default stored in self['clean'].
+
+        :param signal_io: tuple of strings, the first element is the input
+            the second element is the output signal type.
+        :type signal_io: tuple
+
         :returns: None
         :rtype: None
         """
-        y_data = self.signal_type_data(signal_type=signal_type)
-        if ecg_peak_idxs is None:
-            self.get_ecg_peaks(
-                ecg_raw=ecg_raw, bp_filter=bp_filter, overwrite=overwrite)
-            ecg_peak_idxs = self.peaks['ecg']['peak_idx']
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'filt')
 
+        if any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
+                                         'bp_filter', 'overwrite']):
+            warnings.warn("\n".join(wrap(dedent("""
+                The kwargs 'ecg_peak_idxs', 'ecg_raw', 'bp_filter', 'overwrite'
+                will be removed in future versions of ReSurfEMG.
+                ECG removal will be split in QRS detection with
+                `get_ecg_peaks` and ECG elimination (`gating`/
+                `wavelet_denoising`). Alternatively, create an ECG peakset with
+                `set_peaks` and use `gating` or `wavelet_denoising` directly.
+                """))), FutureWarning)
+            ecg_peak_idxs = kwargs.get('ecg_peak_idxs', None)
+            bp_filter = kwargs.get('bp_filter', True)
+            overwrite = kwargs.get('overwrite', False)
+            if ecg_peak_idxs is None:
+                ecg_raw = kwargs.get('ecg_raw', None)
+                self.get_ecg_peaks(
+                    ecg_raw=ecg_raw,
+                    bp_filter=bp_filter,
+                    overwrite=overwrite,
+                    name=ecg_peakset_name)
+            else:
+                if ecg_peakset_name not in self.peaks and not overwrite:
+                    raise UserWarning(
+                        'ECG peaks already detected. Use overwrite=True')
+                ecg_raw = (
+                    kwargs.get('ecg_raw',
+                               self.signal_type_data(signal_type='raw')))
+                self.set_peaks(
+                    signal=ecg_raw,
+                    peak_idxs=ecg_peak_idxs,
+                    peak_set_name=ecg_peakset_name,
+                    overwrite=overwrite,
+                )
+        if ecg_peakset_name not in self.peaks:
+            raise KeyError(
+                f"""ECG peakset {ecg_peakset_name}. First detect ECG peaks
+                before using wavelet denoising.""")
+        y_data = self.signal_type_data(signal_type=signal_io[0])
+        ecg_peak_idxs = self.peaks['ecg']['peak_idx']
         if n is None:
             n = int(np.log(self.param['fs']/20) // np.log(2))
 
         if fixed_threshold is None:
             fixed_threshold = 4.5
 
-        self.y_clean, *_ = ecg_rm.wavelet_denoising(
+        self[signal_io[1]], *_ = ecg_rm.wavelet_denoising(
             y_data, ecg_peak_idxs, fs=self.param['fs'], hard_thresholding=True,
             n=n, fixed_threshold=fixed_threshold, wavelet_type='db2')
 
-    def envelope(self, env_window=None, env_type=None, signal_type='clean',
-                 ci_alpha=None):
+    def envelope(self, env_window=None, env_type=None,
+                 signal_io=('clean', 'env'), ci_alpha=None, **kwargs):
         """
         Derive the moving envelope of the provided signal. See
-        preprocessing.envelope submodule.
-        -----------------------------------------------------------------------
+        preprocessing.envelope submodule. The envelope is by default stored in
+        the self['env']. If ci_alpha is not None, the confidence interval is
+        stored in self['env_ci'].
+
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'env')
         if env_window is None:
             if 'fs' in self.param:
                 env_window = self.param['fs'] // 4
@@ -238,44 +425,53 @@ class TimeSeries:
                 raise ValueError(
                     'Evelope window and sampling rate are not defined.')
 
-        y_data = self.signal_type_data(signal_type=signal_type)
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         if env_type == 'rms' or env_type is None:
-            self.y_env = evl.full_rolling_rms(y_data, env_window)
+            self[signal_io[1]] = evl.full_rolling_rms(y_data, env_window)
             if ci_alpha is not None:
-                self.y_env_ci = evl.rolling_rms_ci(
+                self[signal_io[1] + '_ci'] = evl.rolling_rms_ci(
                     y_data, env_window, alpha=ci_alpha)
         elif env_type == 'arv':
-            self.y_env = evl.full_rolling_arv(y_data, env_window)
+            self[signal_io[1]] = evl.full_rolling_arv(y_data, env_window)
             if ci_alpha is not None:
-                self.y_env_ci = evl.rolling_arv_ci(
+                self[signal_io[1] + '_ci'] = evl.rolling_arv_ci(
                     y_data, env_window, alpha=ci_alpha)
         else:
             raise ValueError('Invalid envelope type')
 
-    def baseline(self, percentile=33, window_s=None, step_s=None,
-                 method='default', signal_type=None, augm_percentile=25,
-                 ma_window=None, perc_window=None):
+    def baseline(
+            self, percentile=33, window_s=None, step_s=None,
+            base_method='default', signal_io=(None, 'baseline'),
+            augm_percentile=25, ma_window=None, perc_window=None, **kwargs):
         """
         Derive the moving baseline of the provided signal. See
-        postprocessing.baseline submodule.
+        postprocessing.baseline submodule. The baseline is stored in the
+        self['baseline'] attribute.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`, `output_name`)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'baseline')
         window_s = window_s or int(7.5 * self.param.get('fs', 1))
         step_s = step_s or self.param.get('fs', 5) // 5
-        signal_type = signal_type or 'env'
+        if signal_io[0] is None:
+            signal_io = ('env', 'baseline')
 
-        y_baseline_data = self.signal_type_data(signal_type=signal_type)
-        if method in ('default', 'moving_baseline'):
-            self.y_baseline = bl.moving_baseline(
+        y_baseline_data = self.signal_type_data(signal_type=signal_io[0])
+        if base_method in ('default', 'moving_baseline'):
+            self[signal_io[1]] = bl.moving_baseline(
                 y_baseline_data, window_s=window_s, step_s=step_s,
                 set_percentile=percentile)
-        elif method == 'slopesum_baseline':
+        elif base_method == 'slopesum_baseline':
             if 'fs' not in self.param:
                 raise ValueError(
                     'Sampling rate is not defined.')
-            self.y_baseline, _, _, _ = bl.slopesum_baseline(
+            self[signal_io[1]], _, _, _ = bl.slopesum_baseline(
                     y_baseline_data, window_s=window_s, step_s=step_s,
                     fs=self.param['fs'], set_percentile=percentile,
                     augm_percentile=augm_percentile, ma_window=ma_window,
@@ -283,13 +479,16 @@ class TimeSeries:
         else:
             raise ValueError('Invalid method')
 
-    def set_peaks(self, peak_idxs, signal, peak_set_name):
+    def set_peaks(self, peak_idxs, signal, peak_set_name, overwrite=False):
         """
-        Store a new PeaksSet object in the self.peaks dict
+        Store a new PeaksSet object in the self.peaks dict under the key
+        peak_set_name.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
         """
+        if peak_set_name in self.peaks and not overwrite:
+            raise UserWarning('PeaksSet already exists. Use overwrite=True')
         self.peaks[peak_set_name] = PeaksSet(
             peak_idxs=peak_idxs, t_data=self.t_data, signal=signal)
 
@@ -301,46 +500,54 @@ class TimeSeries:
         peak_set_name='breaths',
         start_idx=0,
         end_idx=None,
+        overwrite=False,
+        signal_io=(('env', 'baseline'),),
     ):
         """
         Find breath peaks in provided EMG envelope signal. See
-        postprocessing.event_detection submodule.
+        postprocessing.event_detection submodule. The peaks are stored in the
+        self.peaks dict under the key peak_set_name.
         -----------------------------------------------------------------------
         :returns: None
         :rtype: None
         """
-        if self.y_env is None:
-            raise ValueError('Envelope not yet defined.')
+        if signal_io[0][0] not in self._y_data:
+            raise ValueError(f'Envelope ({signal_io[0][0]}) not yet defined.')
 
-        y_baseline = (self.y_baseline if self.y_baseline is not None
-                      else np.zeros(self.y_env.shape))
-        if self.y_baseline is None:
-            warnings.warn("EMG baseline not yet defined. Peak detection "
-                          "relative to zero.")
+        y_baseline = (self[signal_io[0][1]] if signal_io[0][1] in self._y_data
+                      else np.zeros(self[signal_io[0][0]].shape))
+        if signal_io[0][1] not in self._y_data:
+            warnings.warn("\n".join(wrap(dedent(
+                """EMG baseline ({signal_io[0][1]}) not yet defined. Peak
+                detection relative to zero."""))))
 
-        if ((end_idx is not None and end_idx > len(self.y_env))
-                or start_idx > len(self.y_env)):
+        if ((end_idx is not None and end_idx > len(self[signal_io[0][0]]))
+                or start_idx > len(self[signal_io[0][0]])):
             raise ValueError('Index out of range.')
 
-        end_idx = end_idx or len(self.y_env)
+        end_idx = end_idx or len(self[signal_io[0][0]])
         if end_idx < start_idx:
             raise ValueError('End index smaller than start index.')
 
         min_peak_width_s = min_peak_width_s or self.param['fs'] // 5
 
         peak_idxs = evt.detect_emg_breaths(
-            self.y_env[start_idx:end_idx], y_baseline[start_idx:end_idx],
-            threshold=threshold, prominence_factor=prominence_factor,
+            self[signal_io[0][0]][start_idx:end_idx],
+            y_baseline[start_idx:end_idx], threshold=threshold,
+            prominence_factor=prominence_factor,
             min_peak_width_s=min_peak_width_s)
         peak_idxs += start_idx
-        self.set_peaks(peak_idxs=peak_idxs, signal=self.y_env,
-                       peak_set_name=peak_set_name)
+        self.set_peaks(peak_idxs=peak_idxs, signal=self[signal_io[0][0]],
+                       peak_set_name=peak_set_name, overwrite=overwrite)
 
     def link_peak_set(self, peak_set_name, t_reference_peaks,
                       linked_peak_set_name=None):
         """
         Find the peaks in the PeaksSet with the peak_set_name closest in time
-        to the provided peak timings in t_reference_peaks
+        to the provided peak timings in t_reference_peaks. The results are
+        stored in a new PeaksSet object in the self.peaks dict under the key
+        linked_peak_set_name. If no linked_peak_set_name is provided, the key
+        is set to peak_set_name + '_linked'.
         -----------------------------------------------------------------------
         :param peak_set_name: PeaksSet name in self.peaks dict
         :type peak_set_name: str
@@ -372,7 +579,8 @@ class TimeSeries:
 
     def calculate_time_products(
             self, peak_set_name, include_aub=True, aub_window_s=None,
-            aub_reference_signal=None, parameter_name=None):
+            aub_reference_signal=None, parameter_name=None,
+            signal_io=('baseline',)):
         """
         Calculate the time product, i.e. area under the curve for a PeaksSet.
         The results are stored as
@@ -381,10 +589,12 @@ class TimeSeries:
         -----------------------------------------------------------------------
         :param peak_set_name: PeaksSet name in self.peaks dict
         :type peak_set_name: str
-        :param include_aub: Include the area under the baseline in the
-        time product
+        :param include_aub: Include the area under the baseline in the time
+        product
         :type include_aub: bool
-        :param signal_type: one of 'env', 'clean', 'filt', or 'raw'
+        :param signal_io: tuple of strings, the first element is the input
+        baseline type.
+        :type signal_io: tuple
         :param aub_window_s: window length in samples in which the local
         extreme is sought.
         :param aub_window_s: int
@@ -402,17 +612,18 @@ class TimeSeries:
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
 
-        if self.y_baseline is None:
+        if signal_io[0] not in self._y_data:
             if include_aub:
                 raise ValueError(
                     'Baseline in not yet defined, but is required to calculate'
                     + ' the area under the baseline.')
             else:
-                warnings.warn('Baseline in not yet defined. Calculating time-'
-                              + 'product with reference to 0.')
+                warnings.warn("\n".join(wrap(dedent(
+                    """Baseline in not yet defined. Calculating time-product
+                    with reference to 0."""))))
                 baseline = np.zeros(peak_set.signal.shape)
         else:
-            baseline = self.y_baseline
+            baseline = self[signal_io[0]]
 
         time_products = feat.time_product(
             signal=peak_set.signal, fs=self.param['fs'],
@@ -438,26 +649,33 @@ class TimeSeries:
 
     def test_emg_quality(self, peak_set_name, cutoff=None, skip_tests=None,
                          parameter_names=None, verbose=True):
-        """See helper_functions.data_classes_quality_assessment submodule."""
+        """See helper_functions.data_classes_quality_assessment submodule. The
+        results are stored in the self.peaks[peak_set_name].quality_outcomes_df
+        and self.peaks[peak_set_name].quality_values_df DataFrames.
+        """
         data_qa.test_emg_quality(
             self, peak_set_name, cutoff, skip_tests, parameter_names, verbose)
 
     def test_pocc_quality(self, peak_set_name, cutoff=None, skip_tests=None,
                           parameter_names=None, verbose=True):
-        """See helper_functions.data_classes_quality_assessment submodule."""
+        """See helper_functions.data_classes_quality_assessment submodule. The
+        results are stored in the self.peaks[peak_set_name].quality_outcomes_df
+        and self.peaks[peak_set_name].quality_values_df DataFrames."""
         data_qa.test_pocc_quality(
             self, peak_set_name, cutoff, skip_tests, parameter_names, verbose)
 
     def test_linked_peak_sets(
             self, peak_set_name, linked_timeseries, linked_peak_set_name,
             parameter_names=None, cutoff=None, skip_tests=None, verbose=True):
-        """See helper_functions.data_classes_quality_assessment submodule."""
+        """See helper_functions.data_classes_quality_assessment submodule. The
+        results are stored in the self.peaks[peak_set_name].quality_outcomes_df
+        and self.peaks[peak_set_name].quality_values_df DataFrames."""
         data_qa.test_linked_peak_sets(
             self, peak_set_name, linked_timeseries, linked_peak_set_name,
             parameter_names, cutoff, skip_tests, verbose)
 
-    def plot_full(self, axes=None, signal_type=None, colors=None,
-                  baseline_bool=True, plot_ci=False):
+    def plot_full(self, axes=None, signal_io=(None,), colors=None,
+                  baseline_bool=True, plot_ci=False, **kwargs):
         """Plot the indicated signals in the provided axes. By default the most
         advanced signal type (envelope > clean > filt > raw) is plotted in the
         provided colours.
@@ -465,8 +683,9 @@ class TimeSeries:
         :param axes: matplotlib Axis object. If none provided, a new figure is
         created.
         :type axes: matplotlib.Axis
-        :param signal_type: the signal ('env', 'clean', 'filt', 'raw') to plot
-        :type signal_type: str
+        :param signal_io: tuple of strings, the first element is the input
+        signal type.
+        :type signal_io: tuple
         :param colors: list of colors to plot the 1) signal, 2) the baseline
         :type colors: list
         :param baseline_bool: plot the baseline
@@ -475,22 +694,28 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`,)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'], 'env')
         axis = axes if axes is not None else plt.subplots()[1]
         colors = colors if colors is not None else [
             'tab:blue', 'tab:orange', 'tab:red', 'tab:cyan', 'tab:green']
 
-        y_data = self.signal_type_data(signal_type=signal_type)
+        y_data = self.signal_type_data(signal_type=signal_io[0])
         axis.grid(True)
         axis.plot(self.t_data, y_data, color=colors[0])
         axis.set_ylabel(self.label + ' (' + self.y_units + ')')
 
         if (baseline_bool is True
-                and self.y_baseline is not None
-                and np.any(~np.isnan(self.y_baseline), axis=0)):
-            axis.plot(self.t_data, self.y_baseline, color=colors[1])
-        if plot_ci and self.y_env_ci is not None:
-            axis.fill_between(self.t_data, self.y_env_ci[0], self.y_env_ci[1],
-                              color=colors[0], alpha=0.5)
+                and self['baseline'] is not None
+                and np.any(~np.isnan(self['baseline']), axis=0)):
+            axis.plot(self.t_data, self['baseline'], color=colors[1])
+        if plot_ci and self['env_ci'] is not None:
+            axis.fill_between(self.t_data, self['env_ci'][0],
+                              self['env_ci'][1], color=colors[0], alpha=0.5)
 
     def plot_markers(self, peak_set_name, axes, valid_only=False,
                      colors=None, markers=None):
@@ -563,9 +788,9 @@ class TimeSeries:
                 axis.plot(x_end, y_end, marker=end_marker, color=end_color,
                           linestyle='None')
 
-    def plot_peaks(self, peak_set_name, axes=None, signal_type=None,
+    def plot_peaks(self, peak_set_name, axes=None, signal_io=(None,),
                    margin_s=None, valid_only=False, colors=None,
-                   baseline_bool=True, plot_ci=False, ci_alpha=0.05):
+                   baseline_bool=True, plot_ci=False, **kwargs):
         """Plot the indicated peaks in the provided axes. By default the most
         advanced signal type (envelope > clean > filt > raw) is plotted in the
         provided colours.
@@ -575,8 +800,9 @@ class TimeSeries:
         :param axes: matplotlib Axes object. If none provided, a new figure is
         created.
         :type axes: matplotlib.Axes
-        :param signal_type: the signal ('env', 'clean', 'filt' 'raw') to plot
-        :type signal_type: str
+        :param signal_io: tuple of strings, the first element is the input
+        signal type.
+        :type signal_io: tuple
         :param margin_s: margins in samples plotted before the peak onset and
         after the peak offset
         :param valid_only: when True, only valid peaks are plotted.
@@ -589,6 +815,12 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`,)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'],)
         peak_set = self.peaks.get(peak_set_name)
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
@@ -603,20 +835,20 @@ class TimeSeries:
         axes = np.atleast_1d(axes)
         colors = colors if colors is not None else [
             'tab:blue', 'tab:orange', 'tab:red', 'tab:cyan', 'tab:green']
-        y_data = (peak_set.signal if signal_type is None
-                  else self.signal_type_data(signal_type=signal_type))
+        y_data = (peak_set.signal if signal_io[0] is None
+                  else self.signal_type_data(signal_type=signal_io[0]))
         m_s = margin_s if margin_s is not None else self.param['fs'] // 2
-        ci = self.y_env_ci
+        ci = self['env_ci']
         for axis, x_start, x_end in zip(axes, start_idxs, end_idxs):
             s_start, s_end = max(0, x_start - m_s), max(0, x_end + m_s)
             axis.grid(True)
             axis.plot(self.t_data[s_start:s_end], y_data[s_start:s_end],
                       color=colors[0])
-            if baseline_bool and self.y_baseline is not None and np.any(
-                    ~np.isnan(self.y_baseline), axis=0):
+            if baseline_bool and self['baseline'] is not None and np.any(
+                    ~np.isnan(self['baseline']), axis=0):
                 axis.plot(self.t_data[s_start:s_end],
-                          self.y_baseline[s_start:s_end], color=colors[1])
-            if plot_ci and self.y_env_ci is not None:
+                          self['baseline'][s_start:s_end], color=colors[1])
+            if plot_ci and self['env_ci'] is not None:
                 axis.fill_between(
                     self.t_data[s_start:s_end], ci[0][s_start:s_end],
                     ci[1][s_start:s_end], color=colors[0], alpha=0.5)
@@ -683,8 +915,8 @@ class TimeSeries:
                 axes[0].plot(peak_set.t_data[row.start_idx:row.end_idx],
                              row.bell_y_min + y_bell, color=color)
 
-    def plot_aub(self, peak_set_name, axes, signal_type, valid_only=False,
-                 colors=None):
+    def plot_aub(self, peak_set_name, axes, signal_io=None,
+                 valid_only=False, colors=None, **kwargs):
         """Plot the area under the baseline (AUB) for the peak set in the
         provided axes in the provided colours using the provided markers.
         -----------------------------------------------------------------------
@@ -703,6 +935,14 @@ class TimeSeries:
         :returns: None
         :rtype: None
         """
+        if 'signal_type' in kwargs:
+            warnings.warn("\n".join(wrap(dedent(
+                """The 'signal_type' argument is deprecated. Use 'signal_io'
+                instead: signal_io = (`input_name`,)."""))),
+                FutureWarning)
+            signal_io = (kwargs['signal_type'],)
+        elif signal_io is None:
+            raise ValueError('Signal type not provided. Use signal_io.')
         peak_set = self.peaks.get(peak_set_name)
         if peak_set is None:
             raise KeyError("Non-existent PeaksSet key")
@@ -713,8 +953,8 @@ class TimeSeries:
             raise KeyError("aub_y_ref not included in PeaksSet, area under the"
                            " baseline is not evaluated yet.")
 
-        y_data = (peak_set.signal if signal_type is None
-                  else self.signal_type_data(signal_type=signal_type))
+        y_data = (peak_set.signal if signal_io[0] is None
+                  else self.signal_type_data(signal_type=signal_io[0]))
 
         plot_peak_df = (peak_set.peak_df.loc[peak_set.peak_df['valid']]
                         if valid_only and 'valid' in peak_set.peak_df.columns
@@ -749,8 +989,12 @@ class TimeSeries:
 
 class TimeSeriesGroup:
     """
-    Data class to store, process, and plot time series data. Channels can be
-    accessed by index or by label."""
+    Data class to store, process, and plot time series data. TimeSeriesGroup is
+    a collection of TimeSeries objects. Enclosed TimeSeries objects can be
+    indexed by index number or channel label.
+    TimeSeries methods in TimeSeriesGroup._available_methods can be run on all
+    or a subset of the TimeSeries objects through the TimeSeriesGroup.run
+    method."""
 
     def __init__(self, y_raw, t_data=None, fs=None, labels=None, units=None):
         """
@@ -773,6 +1017,7 @@ class TimeSeriesGroup:
         self.param['fs'] = fs
         self._available_methods = [
             'envelope', 'baseline', 'plot_full', 'plot_peaks', 'plot_markers',
+            'set_peaks'
         ]
         data_shape = list(np.array(y_raw).shape)
         data_dims = len(data_shape)
@@ -841,27 +1086,87 @@ class TimeSeriesGroup:
     def __iter__(self):
         return iter(self.channels)
 
+    def to_numpy(self, channel_idxs=None, signal_io=(None,)):
+        """Convert the TimeSeriesGroup to a numpy array. The output is a 2D
+        array with the shape (n_channels, n_samples). The signal type is
+        determined by the signal_io parameter. If signal_io is (None,), the
+        most advanced signal type (envelope > clean > filt > raw) is used.
+
+        :param channel_idxs: channel indices to convert to numpy array
+        :type channel_idxs: ~numpy.ndarray or int
+        :param signal_io: tuple of strings, the first element is the input
+            signal type.
+        :type signal_io: tuple
+
+        :returns: numpy array of the TimeSeriesGroup data
+        :rtype: ~numpy.ndarray
+        """
+        if channel_idxs is None:
+            channel_idxs = np.arange(self.param['n_channel'])
+        elif isinstance(channel_idxs, int):
+            channel_idxs = np.array([channel_idxs])
+        return np.array([self.channels[idx].signal_type_data(signal_io[0])
+                         for idx in channel_idxs])
+
     def run(self, method, channel_idxs=None, **kwargs):
         """Run a TimeSeries function on the provided channels in the group. The
-        function is run with the provided keyword arguments."""
+        function is run with the provided keyword arguments.
+        -----------------------------------------------------------------------
+        :param method: method to run on the TimeSeries objects
+        :type method: str
+        :param channel_idxs: channel indices to run the method on
+        :type channel_idxs: ~numpy.ndarray or int
+        :param kwargs: keyword arguments for the method
+        """
         if channel_idxs is None:
             channel_idxs = np.arange(self.param['n_channel'])
         elif isinstance(channel_idxs, int):
             channel_idxs = np.array([channel_idxs])
 
         if method in self._available_methods:
-            if method in ['gating', 'wavelet_denoising']:
-                if 'ecg_peak_idxs' in kwargs:
-                    print('Provided ECG peak indices used for ECG removal.')
-                elif 'ecg_raw' in kwargs:
-                    print('Provided raw ECG used for ECG removal.')
+            if method == 'get_ecg_peaks':
+                if 'ecg_raw' in kwargs and kwargs['ecg_raw'] is not None:
+                    print('Provided raw ECG used for ECG peak detection.')
+                elif self.ecg_idx is not None:
+                    kwargs['ecg_raw'] = self[self.ecg_idx]['raw']
+                    print('Set ECG channel used for ECG peak detection.')
                 else:
-                    if self.ecg_idx is not None:
-                        kwargs['ecg_raw'] = self[self.ecg_idx].y_raw
-                        print('Set ECG channel used for ECG removal.')
+                    print(
+                        'Channel raw signals used for ECG peak detection.')
+
+            if method in ['gating', 'wavelet_denoising']:
+                if (all(not kwargs.get('ecg_peakset_name', 'ecg') in
+                        channel.peaks for channel in self.channels) or
+                    any(key in kwargs for key in ['ecg_peak_idxs', 'ecg_raw',
+                                                  'bp_filter', 'overwrite'])):
+                    warnings.warn("\n".join(wrap(dedent(
+                        """
+                        The kwargs 'ecg_peak_idxs', 'ecg_raw', 'bp_filter',
+                        'overwrite' will be removed from the gating and wavelet
+                        denoising methods in future versions of ReSurfEMG:
+                        ECG removal will be split in QRS detection with
+                        `get_ecg_peaks` and ECG elimination (`gating`/
+                        `wavelet_denoising`):
+                        TimeSeriesGroup.run('get_ecg_peaks', ...)
+                        Before running:
+                        TimeSeriesGroup.run('gating', ...) or
+                        TimeSeriesGroup.run('wavelet_denoising', ...)\n
+                        Alternatively, create an ECG peakset with `set_peaks`
+                        and use `gating` or `wavelet_denoising` directly."""
+                    ))), FutureWarning)
+                    ecg_kwargs = {
+                        'channel_idxs': channel_idxs,
+                        'overwrite': kwargs.pop('overwrite', False)}
+                    if 'ecg_peak_idxs' in kwargs:
+                        ecg_kwargs['ecg_peak_idxs'] = kwargs.pop(
+                            'ecg_peak_idxs')
+                        self.run('set_peaks', **ecg_kwargs)
                     else:
-                        raise ValueError("No ECG channel and peak indices "
-                                         "provided")
+                        ecg_kwargs = {
+                            'ecg_raw': kwargs.pop('ecg_raw', None),
+                            'bp_filter': kwargs.pop('bp_filter', True)}
+                        self.run('get_ecg_peaks', **ecg_kwargs)
+
             elif method.startswith('plot_'):
                 if 'axes' not in kwargs:
                     _, kwargs['axes'] = plt.subplots(
@@ -874,8 +1179,8 @@ class TimeSeriesGroup:
                         raise ValueError("Provided axes have not enough rows "
                                          "for all channels to plot.")
                     elif len(channel_idxs) < len(kwargs['axes']):
-                        warnings.warn(
-                            'More axes provided than channels to plot.')
+                        warnings.warn("\n".join(wrap(dedent(
+                            'More axes provided than channels to plot.'))))
                 elif method in ['plot_peaks', 'plot_markers']:
                     kwargs['axes'] = np.atleast_2d(kwargs['axes'])
 
@@ -898,11 +1203,22 @@ class TimeSeriesGroup:
 
 class EmgDataGroup(TimeSeriesGroup):
     """Child-class of TimeSeriesGroup to store and handle emg data in with the
-    additional methods filter_emg, gating, and wavelet_denoising."""
+    additional methods filter_emg, gating, and wavelet_denoising. Enclosed
+    TimeSeries objects can be indexed by index number or channel label.
+    TimeSeries methods in TimeSeriesGroup._available_methods can be run on all
+    or a subset of the TimeSeries objects through the TimeSeriesGroup.run
+    method.
+    When running ECG elimination methods (gating, wavelet_denoising) and no ECG
+    channel or ecg_raw is provided, EmgDataGroup.ecg_idx is used to detect the
+    QRS peak locations. ecg_idx is auto-detected from the labels on
+    EmgDataGroup initialization, or can be set with the set_ecg_idx method.
+    When no ECG channel is provided, the raw signal per TimeSeries object is
+    used."""
     def __init__(self, y_raw, t_data=None, fs=None, labels=None, units=None):
         super().__init__(
             y_raw, t_data=t_data, fs=fs, labels=labels, units=units)
         self._available_methods.append('filter_emg')
+        self._available_methods.append('get_ecg_peaks')
         self._available_methods.append('gating')
         self._available_methods.append('wavelet_denoising')
 
@@ -934,7 +1250,9 @@ class EmgDataGroup(TimeSeriesGroup):
 class VentilatorDataGroup(TimeSeriesGroup):
     """
     Child-class of TimeSeriesGroup to store and handle ventilator data in.
-    Default channels are 'Paw'/ 'Pvent', 'F', and 'Vvent'.
+    Default channels are 'Paw'/ 'Pvent', 'F', and 'Vvent', which are auto-
+    detected from the labels. The PEEP-level (VentilatorDataGroup.peep) is
+    auto-detected from the pressure channel when a pressure channel is set.
     """
     def __init__(self, y_raw, t_data=None, fs=None, labels=None, units=None):
         super().__init__(
@@ -978,11 +1296,13 @@ class VentilatorDataGroup(TimeSeriesGroup):
         if volume_idx is None:
             raise ValueError('volume_idx and self.v_vent_idx not defined')
 
-        v_ee_pks, _ = scipy.signal.find_peaks(-self.channels[volume_idx].y_raw)
+        v_ee_pks, _ = scipy.signal.find_peaks(
+            -self.channels[volume_idx]['raw'])
         self.peep = np.round(np.median(
-            self.channels[pressure_idx].y_raw[v_ee_pks]))
+            self.channels[pressure_idx]['raw'][v_ee_pks]))
 
-    def find_occluded_breaths(self, pressure_idx=None, peep=None, **kwargs):
+    def find_occluded_breaths(
+            self, pressure_idx=None, peep=None, overwrite=False, **kwargs):
         """
         Find end-expiratory occlusion manoeuvres in ventilator pressure
         timeseries data. See postprocessing.event_detection submodule.
@@ -995,7 +1315,7 @@ class VentilatorDataGroup(TimeSeriesGroup):
         :rtype: None
         """
         pressure_idx = pressure_idx or self.p_vent_idx
-        kwargs['p_vent'] = self.channels[pressure_idx].y_raw
+        kwargs['p_vent'] = self.channels[pressure_idx]['raw']
         kwargs['fs'] = self.param['fs']
 
         kwargs['peep'] = peep or self.peep
@@ -1005,11 +1325,11 @@ class VentilatorDataGroup(TimeSeriesGroup):
         peak_idxs = evt.find_occluded_breaths(**kwargs)
         peak_idxs = peak_idxs + kwargs['start_idx']
         self.channels[pressure_idx].set_peaks(
-            signal=self.channels[pressure_idx].y_raw, peak_idxs=peak_idxs,
-            peak_set_name='Pocc')
+            signal=self.channels[pressure_idx]['raw'], peak_idxs=peak_idxs,
+            peak_set_name='Pocc', overwrite=overwrite)
 
     def find_tidal_volume_peaks(
-        self, volume_idx=None, pressure_idx=None, **kwargs,
+        self, volume_idx=None, pressure_idx=None, overwrite=False, **kwargs,
     ):
         """
         Find tidal-volume peaks in ventilator volume signal. Peaks are stored
@@ -1029,23 +1349,24 @@ class VentilatorDataGroup(TimeSeriesGroup):
                       else self.v_vent_idx)
         if volume_idx is None:
             raise ValueError('volume_idx and v_vent_idx not defined')
-        kwargs['v_vent'] = self.channels[volume_idx].y_raw
+        kwargs['v_vent'] = self.channels[volume_idx]['raw']
 
         kwargs['start_idx'] = kwargs.setdefault('start_idx', 0)
         kwargs['end_idx'] = kwargs.setdefault(
-            'end_idx', len(self.channels[volume_idx].y_raw) - 1)
+            'end_idx', len(self.channels[volume_idx]['raw']) - 1)
         kwargs['width_s'] = kwargs.setdefault('width_s', self.param['fs'] // 4)
         peak_idxs = (evt.detect_ventilator_breath(**kwargs)
                      + kwargs['start_idx'])
 
         self.channels[volume_idx].set_peaks(
-            signal=self.channels[volume_idx].y_raw, peak_idxs=peak_idxs,
-            peak_set_name='ventilator_breaths')
+            signal=self.channels[volume_idx]['raw'], peak_idxs=peak_idxs,
+            peak_set_name='ventilator_breaths', overwrite=overwrite)
 
         pressure_idx = pressure_idx or self.p_vent_idx
         if pressure_idx is not None:
             self.channels[pressure_idx].set_peaks(
-                signal=self.channels[pressure_idx].y_raw, peak_idxs=peak_idxs,
-                peak_set_name='ventilator_breaths')
+                signal=self.channels[pressure_idx]['raw'], peak_idxs=peak_idxs,
+                peak_set_name='ventilator_breaths', overwrite=overwrite)
         else:
-            warnings.warn('pressure_idx and self.p_vent_idx not defined.')
+            warnings.warn("\n".join(wrap(dedent(
+                'pressure_idx and self.p_vent_idx not defined.'))))

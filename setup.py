@@ -6,7 +6,6 @@ import subprocess
 
 from setuptools import Command, setup
 
-
 project_dir = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -42,8 +41,8 @@ class SphinxApiDoc(Command):
 
         sys.exit(main([
             '-o', src,
-            '-f',
-            os.path.join(project_dir, 'resurfemg'),
+            '-f', os.path.join(project_dir, 'resurfemg'),
+            '-d', '4',
             '--separate',
         ]))
 
@@ -78,7 +77,7 @@ class SphinxDoc(Command):
                 ],
                 stderr=subprocess.DEVNULL,
             ).strip().decode()
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             tag = 'v0.0.0'
 
         version = tag[1:]
@@ -87,6 +86,7 @@ class SphinxDoc(Command):
         confoverrides = {}
         confoverrides['project'] = name
         confoverrides['version'] = version
+        confoverrides['autodoc_mock_imports'] = ["adi"]
         confdir = os.path.join(project_dir, 'docs')
         srcdir = confdir
         builder = 'html'
