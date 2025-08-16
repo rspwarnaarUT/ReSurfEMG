@@ -21,17 +21,14 @@ jobs:
       - run: python3 -m venv .venv
       - run: .venv/bin/python -m pip install wheel
       - run: .venv/bin/python -m pip install -e .[tests]
-      - run: .venv/bin/python -m pytest --cov --junitxml=junit.xml -o junit_family=legacy
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - run: .venv/bin/python -m pytest --cov
+      - name: Upload coverage reports to Codecov
+        run: |
+          # Replace `linux` below with the appropriate OS
+          # Options are `alpine`, `linux`, `macos`, `windows`
+          curl -Os https://cli.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov --verbose upload-process --fail-on-error -t ${{ secrets.CODECOV_TOKEN }} -n 'service'-${{ github.run_id }} -F service -f coverage-service.xml
 
   Sphinx:
     runs-on: ubuntu-latest
