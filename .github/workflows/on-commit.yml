@@ -21,10 +21,15 @@ jobs:
       - run: python3 -m venv .venv
       - run: .venv/bin/python -m pip install wheel
       - run: .venv/bin/python -m pip install -e .[tests]
-      - run: .venv/bin/python -m pytest --cov --cov-branch --cov-report=xml
+      - run: .venv/bin/python -m pytest --cov --junitxml=junit.xml -o junit_family=legacy
 
-      - name: Upload results to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
