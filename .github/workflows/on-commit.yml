@@ -54,7 +54,7 @@ jobs:
       - run: .venv/bin/python setup.py apidoc
       - run: .venv/bin/python setup.py build_sphinx -W
       - name: Publish Docs to Pages
-        uses: JamesIves/github-pages-deploy-action@164583b9e44b4fc5910e78feb607ea7c98d3c7b9
+        uses: JamesIves/github-pages-deploy-action@6c2d9db40f9296374acc17b90404b6e8864128c8
         with:
           branch: gh-pages
           folder: build/sphinx/html
