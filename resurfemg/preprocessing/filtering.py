@@ -13,7 +13,7 @@ def emg_bandpass_butter(
     emg_raw,
     high_pass,
     low_pass,
-    fs_emg,
+    fs_emg=2048,
     order=3,
 ):
     """Bandpass filter for EMG signal
