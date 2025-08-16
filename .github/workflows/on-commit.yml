@@ -23,7 +23,7 @@ jobs:
       - run: python3 -m venv .venv
       - run: .venv/bin/python -m pip install wheel
       - run: .venv/bin/python -m pip install -e .[tests]
-      - run: .venv/bin/python -m pytest --cov --cov-report=xml
+      - run: .venv/bin/python -m pytest --cov=./resurfemg --cov-report=xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
