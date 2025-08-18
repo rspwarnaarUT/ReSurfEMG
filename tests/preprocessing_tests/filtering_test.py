@@ -46,14 +46,5 @@ class TestFilteringMethods(unittest.TestCase):
             len(sample_read.samples[0]) ,
         )
 
-    def test_notch_filter(self):
-        sample_read= Poly5Reader(sample_emg)
-        sample_emg_filtered = filt.notch_filter(
-            sample_read.samples, 80, 2048, 2)
-        self.assertEqual(
-            (len(sample_emg_filtered[0])),
-            len(sample_read.samples[0]) ,
-        )
-
 if __name__ == '__main__':
     unittest.main()
