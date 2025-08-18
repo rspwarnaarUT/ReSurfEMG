@@ -35,8 +35,6 @@ jobs:
     - run: .venv\Scripts\pip install wheel setuptools
     - run: .venv\Scripts\pip install -e .[tests]
     - run: .venv\Scripts\python -m pytest --cov
-    - name: Run tests and collect coverage
-      run: pytest --cov .
     - name: Upload coverage reports to Codecov
       run: |
         # Replace `linux` below with the appropriate OS
